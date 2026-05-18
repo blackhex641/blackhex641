@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackhex Admin Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="login-box" style="border-color: #ff00ff; box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);">
+        <h2 style="color: #ff00ff; text-shadow: 0 0 5px #ff00ff;">🔒 Admin Access</h2>
+        <input type="password" id="adminPassword" placeholder="Enter Password" style="border-color: #ff00ff; color: #ff00ff;">
+        <button class="btn" style="border-color: #ff00ff; color: #ff00ff;" onclick="checkLogin()">Login</button>
+    </div>
+
+    <script>
+        function checkLogin() {
+            const pass = document.getElementById("adminPassword").value;
+            if(pass === "12345") {
+                alert("Login Successful!");
+                window.location.href = "admin.html";
+            } else {
+                alert("❌ Wrong Password!");
+            }
+        }
+    </script>
+</body>
+</html>
