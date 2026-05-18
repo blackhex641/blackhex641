@@ -2,34 +2,96 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blackhex Proxy & Tasks</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Blackhex Hub</title>
     <link rel="stylesheet" href="style.css">
     <script src='//libtl.com/sdk.js' data-zone='11023737' data-sdk='show_11023737'></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
-    <div class="container">
+    <div class="header">
         <h2>⚡ Blackhex ⚡</h2>
-        <div class="user-info" id="userInfo">Loading User...</div>
+        <div class="balance-box">
+            <p>Available Balance</p>
+            <div class="balance">৳<span id="mainBalance">0.00</span></div>
+        </div>
+    </div>
+
+    <div id="tab-home" class="tab-content active">
+        <h3 style="margin-top:0;">Services</h3>
         
-        <div class="wallet-box">
-            <p>Your Balance</p>
-            <div class="balance">৳ <span id="userBalance">0.00</span></div>
+        <div class="card">
+            <div class="card-info">
+                <h4>📺 Watch Ads</h4>
+                <p>Earn ৳1 per ad view</p>
+            </div>
+            <button class="btn" onclick="startAdTimer()">Watch</button>
         </div>
 
-        <button class="btn" style="border-color: #ff00ff; color: #ff00ff;" onclick="openDeposit()">💰 Deposit (bKash/Nagad)</button>
-        <button class="btn" id="adBtn" onclick="startAdTimer()">📺 Watch Ad (Earn ৳1)</button>
-        <button class="btn" onclick="buyProxy()">🛒 Buy Owl Proxy (৳10)</button>
+        <div class="card" style="border-color: #ff00ff;">
+            <div class="card-info">
+                <h4>🛒 Owl Proxy</h4>
+                <p>200MB Premium - ৳10</p>
+            </div>
+            <button class="btn" style="border-color: #ff00ff; color: #ff00ff;" onclick="buyProxy()">Buy Now</button>
+        </div>
+
+        <button class="btn btn-primary" onclick="openDepositModal()">💳 Deposit Money</button>
+    </div>
+
+    <div id="tab-history" class="tab-content">
+        <h3 style="margin-top:0;">Transaction History</h3>
+        <p style="color: #888; font-size: 12px;">(Data will sync after backend is connected)</p>
+        
+        <div class="card" style="margin-bottom: 10px;">
+            <div class="card-info"><h4>Ad Reward</h4><p>Today, 10:30 AM</p></div>
+            <div style="color: #00ff00;">+৳1.00</div>
+        </div>
+    </div>
+
+    <div id="tab-profile" class="tab-content">
+        <div class="profile-card">
+            <img src="https://via.placeholder.com/80" alt="Profile" class="profile-pic" id="userPhoto">
+            <div class="profile-name" id="userName">User Name</div>
+            <div class="profile-username" id="userUsername">@username</div>
+            <div style="font-size: 12px; color: #888;">Telegram ID: <span id="userId">00000000</span></div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('home', this)">
+            <span>🏠</span>Home
+        </div>
+        <div class="nav-item" onclick="switchTab('history', this)">
+            <span>📜</span>History
+        </div>
+        <div class="nav-item" onclick="switchTab('profile', this)">
+            <span>👤</span>Profile
+        </div>
     </div>
 
     <div class="modal" id="adModal">
         <div class="modal-content">
-            <h3>Watching Advertisement</h3>
-            <p>Do not close this screen!</p>
+            <h3 style="color: #00f3ff;">Watching Ad...</h3>
+            <p style="color: #888; font-size: 14px;">Do not close this screen!</p>
             <div class="timer-text" id="countdown">15</div>
-            <button class="btn" onclick="cancelAd()">Cancel</button>
+            <button class="btn btn-primary" onclick="cancelAd()">Cancel Ad</button>
+        </div>
+    </div>
+
+    <div class="modal" id="depositModal">
+        <div class="modal-content">
+            <h3 style="margin-top: 0;">Add Money</h3>
+            <p style="font-size: 12px; color:#aaa;">Send money to <b>01XXXXXXXXX</b> (bKash/Nagad Personal)</p>
+            <select id="depMethod">
+                <option value="bkash">bKash</option>
+                <option value="nagad">Nagad</option>
+            </select>
+            <input type="number" id="depAmount" placeholder="Enter Amount (৳)">
+            <input type="text" id="depTrx" placeholder="Transaction ID">
+            <button class="btn btn-primary" style="margin-top: 15px;" onclick="submitDeposit()">Submit</button>
+            <button class="btn" style="border: none; color: #888; width: 100%; margin-top: 10px;" onclick="closeModal('depositModal')">Cancel</button>
         </div>
     </div>
 
