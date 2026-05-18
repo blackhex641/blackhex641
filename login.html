@@ -1,54 +1,92 @@
-<!-- login.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Blackhex Admin - Login</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: radial-gradient(circle at 50% 50%, #0a0a1a, #000);
-    }
-    .login-card {
-      width: 90%;
-      max-width: 380px;
-      padding: 40px 30px;
-      text-align: center;
-    }
-    .login-card h1 {
-      font-size: 2.5rem;
-      margin-bottom: 30px;
-    }
-    .login-card input {
-      margin: 15px 0;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blackhex Admin Login</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="login-card glass">
-    <h1 class="neon-blue">BLACKHEX</h1>
-    <h2 class="neon-pink">Admin Login</h2>
-    <input type="password" id="admin-password" placeholder="Enter password" autocomplete="off">
-    <button class="btn neon-border-blue full-width" id="login-btn">Access Panel</button>
-    <p style="margin-top:15px; opacity:0.6;">Hint: 12345</p>
+
+<div class="toast" id="toast"></div>
+
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="login-logo">BLACKHEX</div>
+    <div class="login-subtitle">Admin Access Portal</div>
+
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input type="text" class="form-input" id="usernameInput" placeholder="Enter username" autocomplete="off" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" class="form-input" id="passwordInput" placeholder="Enter password" />
+    </div>
+
+    <button class="submit-btn" id="loginBtn" onclick="doLogin()">
+      AUTHENTICATE
+    </button>
+
+    <div class="text-center text-muted mt-10" style="font-size:0.7rem;letter-spacing:1px;">
+      ◈ Secure Admin Panel ◈
+    </div>
   </div>
-  <script>
-    document.getElementById('login-btn').addEventListener('click', () => {
-      const pass = document.getElementById('admin-password').value;
-      if (pass === '12345') {
-        window.location.href = 'admin.html';
+</div>
+
+<script>
+  // Redirect if already logged in
+  if (localStorage.getItem('bh_admin_token')) {
+    window.location.href = 'admin.html';
+  }
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    setTimeout(() => { t.className = 'toast'; }, 3500);
+  }
+
+  async function doLogin() {
+    const username = document.getElementById('usernameInput').value.trim();
+    const password = document.getElementById('passwordInput').value.trim();
+    const btn = document.getElementById('loginBtn');
+
+    if (!username || !password) {
+      showToast('Please fill all fields', 'error'); return;
+    }
+
+    btn.innerHTML = '<span class="loading-spinner"></span> AUTHENTICATING...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+
+      if (res.ok && data.token) {
+        localStorage.setItem('bh_admin_token', data.token);
+        showToast('Access granted! Redirecting...', 'success');
+        setTimeout(() => { window.location.href = 'admin.html'; }, 1200);
       } else {
-        alert('Incorrect password!');
+        showToast(data.error || 'Invalid credentials', 'error');
+        btn.innerHTML = 'AUTHENTICATE';
+        btn.disabled = false;
       }
-    });
-    document.getElementById('admin-password').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') document.getElementById('login-btn').click();
-    });
-  </script>
+    } catch (err) {
+      showToast('Connection error', 'error');
+      btn.innerHTML = 'AUTHENTICATE';
+      btn.disabled = false;
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+</script>
 </body>
 </html>
