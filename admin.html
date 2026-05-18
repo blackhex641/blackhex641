@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blackhex Admin</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="admin-wrapper">
+
+  <!-- Header -->
+  <div class="admin-header">
+    <div>
+      <div class="admin-title">BLACKHEX ADMIN</div>
+      <div class="text-muted" style="font-size:0.7rem;letter-spacing:2px;margin-top:2px;">CONTROL PANEL</div>
+    </div>
+    <button class="admin-btn pink" onclick="logout()">LOGOUT</button>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="admin-grid" style="grid-template-columns:1fr 1fr 1fr;" id="statsRow">
+    <div class="admin-card" style="text-align:center;">
+      <div class="admin-stat-val" id="statUsers">--</div>
+      <div class="admin-stat-label">Total Users</div>
+    </div>
+    <div class="admin-card" style="text-align:center;">
+      <div class="admin-stat-val" id="statAvailableProxies">--</div>
+      <div class="admin-stat-label">Available Proxies</div>
+    </div>
+    <div class="admin-card" style="text-align:center;">
+      <div class="admin-stat-val" id="statSoldProxies">--</div>
+      <div class="admin-stat-label">Sold Proxies</div>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="admin-grid">
+
+    <!-- Add Proxy -->
+    <div class="admin-card">
+      <div class="admin-card-title">◈ ADD PROXY</div>
+      <div class="form-group">
+        <label class="form-label">Proxy Details (multi-line)</label>
+        <textarea class="form-textarea" id="proxyDetailsInput" placeholder="Host: change5.owlproxy.com
+Port: 7778
+User: 8T4AyvNL4s30_custom_zone_BD
+Pass: 3018866
+Protocol: Socks5"></textarea>
+      </div>
+      <button class="admin-btn cyan" onclick="addProxy()">+ ADD PROXY</button>
+      <div id="addProxyMsg" class="text-muted mt-10" style="font-size:0.75rem;"></div>
+    </div>
+
+    <!-- Settings -->
+    <div class="admin-card">
+      <div class="admin-card-title">◈ SETTINGS</div>
+      <div class="form-group">
+        <label class="form-label">Ad Reward Amount (৳)</label>
+        <input type="number" class="form-input" id="adRewardInput" placeholder="e.g. 2" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">bKash Number</label>
+        <input type="text" class="form-input" id="bkashInput" placeholder="e.g. 01XXXXXXXXX" />
+      </div>
+      <button class="admin-btn cyan" onclick="saveSettings()">SAVE SETTINGS</button>
+      <div id="settingsMsg" class="text-muted mt-10" style="font-size:0.75rem;"></div>
+    </div>
+
+    <!-- Adjust User Balance -->
+    <div class="admin-card">
+      <div class="admin-card-title">◈ ADJUST USER BALANCE</div>
+      <div class="form-group">
+        <label class="form-label">Telegram ID</label>
+        <input type="text" class="form-input" id="adjustTgId" placeholder="Enter Telegram ID" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount (use - to deduct)</label>
+        <input type="number" class="form-input" id="adjustAmount" placeholder="e.g. 50 or -10" />
+      </div>
+      <button class="admin-btn cyan" onclick="adjustBalance()">APPLY</button>
+      <div id="adjustMsg" class="text-muted mt-10" style="font-size:0.75rem;"></div>
+    </div>
+
+    <!-- Proxy List -->
+    <div class="admin-card" style="grid-column:1/-1;">
+      <div class="admin-card-title" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>◈ PROXY LIST</span>
+        <button class="admin-btn cyan" style="padding:6px 14px;font-size:0.55rem;" onclick="loadProxies()">REFRESH</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="admin-users-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>DETAILS PREVIEW</th>
+              <th>STATUS</th>
+              <th>ACTION</th>
+            </tr>
+          </thead>
+          <tbody id="proxyTableBody">
+            <tr><td colspan="4" class="text-muted" style="text-align:center;padding:20px;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- User List -->
+    <div class="admin-card" style="grid-column:1/-1;">
+      <div class="admin-card-title" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>◈ USER LIST</span>
+        <button class="admin-btn cyan" style="padding:6px 14px;font-size:0.55rem;" onclick="loadUsers()">REFRESH</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="admin-users-table">
+          <thead>
+            <tr>
+              <th>TELEGRAM ID</th>
+              <th>USERNAME</th>
+              <th>BALANCE (৳)</th>
+              <th>PROXIES BOUGHT</th>
+              <th>ADS WATCHED</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody">
+            <tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const TOKEN = localStorage.getItem('bh_admin_token');
+  if (!TOKEN) window.location.href = 'login.html';
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${TOKEN}`
+  };
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    setTimeout(() => { t.className = 'toast'; }, 3500);
+  }
+
+  function logout() {
+    localStorage.removeItem('bh_admin_token');
+    window.location.href = 'login.html';
+  }
+
+  /* ── Load Stats ── */
+  async function loadStats() {
+    try {
+      const res = await fetch('/api/db?action=stats', { headers });
+      const data = await res.json();
+      document.getElementById('statUsers').textContent = data.totalUsers ?? '--';
+      document.getElementById('statAvailableProxies').textContent = data.availableProxies ?? '--';
+      document.getElementById('statSoldProxies').textContent = data.soldProxies ?? '--';
+    } catch(e) { console.error(e); }
+  }
+
+  /* ── Load Users ── */
+  async function loadUsers() {
+    const tbody = document.getElementById('userTableBody');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px;">Loading...</td></tr>';
+    try {
+      const res = await fetch('/api/db?action=users', { headers });
+      const data = await res.json();
+      if (!data.users || data.users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px;">No users found</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.users.map(u => `
+        <tr>
+          <td>${u.telegramId}</td>
+          <td>${u.username || '—'}</td>
+          <td style="color:var(--neon-cyan);font-family:'Orbitron',monospace;">৳${u.balance}</td>
+          <td>${u.proxiesBought || 0}</td>
+          <td>${u.adsWatched || 0}</td>
+        </tr>
+      `).join('');
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px;">Error loading users</td></tr>';
+    }
+  }
+
+  /* ── Load Proxies ── */
+  async function loadProxies() {
+    const tbody = document.getElementById('proxyTableBody');
+    tbody.innerHTML = '<tr><td colspan="4" class="text-muted" style="text-align:center;padding:20px;">Loading...</td></tr>';
+    try {
+      const res = await fetch('/api/db?action=proxies', { headers });
+      const data = await res.json();
+      if (!data.proxies || data.proxies.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-muted" style="text-align:center;padding:20px;">No proxies in database</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.proxies.map((p, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td style="font-family:monospace;font-size:0.75rem;color:var(--text-muted);max-width:300px;word-break:break-all;">
+            ${p.proxyDetails.substring(0, 80)}${p.proxyDetails.length > 80 ? '...' : ''}
+          </td>
+          <td><span class="badge ${p.status}">${p.status}</span></td>
+          <td>
+            <button class="admin-btn pink" style="padding:4px 10px;font-size:0.55rem;" onclick="deleteProxy('${p._id}')">DELETE</button>
+          </td>
+        </tr>
+      `).join('');
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="4" class="text-muted" style="text-align:center;padding:20px;">Error loading proxies</td></tr>';
+    }
+  }
+
+  /* ── Add Proxy ── */
+  async function addProxy() {
+    const details = document.getElementById('proxyDetailsInput').value.trim();
+    const msg = document.getElementById('addProxyMsg');
+    if (!details) { msg.textContent = '⚠ Please enter proxy details'; msg.style.color = 'var(--danger)'; return; }
+
+    try {
+      const res = await fetch('/api/db?action=addProxy', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ proxyDetails: details })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        msg.textContent = '✓ Proxy added successfully';
+        msg.style.color = 'var(--success)';
+        document.getElementById('proxyDetailsInput').value = '';
+        loadProxies(); loadStats();
+      } else {
+        msg.textContent = '✗ ' + (data.error || 'Failed');
+        msg.style.color = 'var(--danger)';
+      }
+    } catch(e) {
+      msg.textContent = '✗ Connection error'; msg.style.color = 'var(--danger)';
+    }
+  }
+
+  /* ── Delete Proxy ── */
+  async function deleteProxy(id) {
+    if (!confirm('Delete this proxy?')) return;
+    try {
+      const res = await fetch('/api/db?action=deleteProxy', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ proxyId: id })
+      });
+      if (res.ok) { showToast('Proxy deleted', 'success'); loadProxies(); loadStats(); }
+      else showToast('Failed to delete', 'error');
+    } catch(e) { showToast('Error', 'error'); }
+  }
+
+  /* ── Save Settings ── */
+  async function saveSettings() {
+    const adReward = document.getElementById('adRewardInput').value;
+    const bkashNumber = document.getElementById('bkashInput').value.trim();
+    const msg = document.getElementById('settingsMsg');
+
+    try {
+      const res = await fetch('/api/db?action=saveSettings', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ adReward: Number(adReward), bkashNumber })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        msg.textContent = '✓ Settings saved';
+        msg.style.color = 'var(--success)';
+      } else {
+        msg.textContent = '✗ ' + (data.error || 'Failed');
+        msg.style.color = 'var(--danger)';
+      }
+    } catch(e) {
+      msg.textContent = '✗ Connection error'; msg.style.color = 'var(--danger)';
+    }
+  }
+
+  /* ── Adjust Balance ── */
+  async function adjustBalance() {
+    const telegramId = document.getElementById('adjustTgId').value.trim();
+    const amount = Number(document.getElementById('adjustAmount').value);
+    const msg = document.getElementById('adjustMsg');
+
+    if (!telegramId || isNaN(amount)) {
+      msg.textContent = '⚠ Fill all fields'; msg.style.color = 'var(--danger)'; return;
+    }
+
+    try {
+      const res = await fetch('/api/db?action=adjustBalance', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ telegramId, amount })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        msg.textContent = `✓ Balance updated. New balance: ৳${data.newBalance}`;
+        msg.style.color = 'var(--success)';
+        loadUsers();
+      } else {
+        msg.textContent = '✗ ' + (data.error || 'Failed');
+        msg.style.color = 'var(--danger)';
+      }
+    } catch(e) {
+      msg.textContent = '✗ Connection error'; msg.style.color = 'var(--danger)';
+    }
+  }
+
+  /* ── Load Settings into form ── */
+  async function loadSettings() {
+    try {
+      const res = await fetch('/api/db?action=getSettings', { headers });
+      const data = await res.json();
+      if (data.settings) {
+        document.getElementById('adRewardInput').value = data.settings.adReward || '';
+        document.getElementById('bkashInput').value = data.settings.bkashNumber || '';
+      }
+    } catch(e) { console.error(e); }
+  }
+
+  /* ── Init ── */
+  loadStats();
+  loadUsers();
+  loadProxies();
+  loadSettings();
+</script>
+</body>
+</html>
