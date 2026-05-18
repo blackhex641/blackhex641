@@ -1,133 +1,202 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Blackhex</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="//libtl.com/sdk.js" data-zone="11023737" data-sdk="show_11023737"></script>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Monitag Ad SDK -->
+  <script src='//libtl.com/sdk.js' data-zone='11023737' data-sdk='show_11023737'></script>
 </head>
 <body>
-  <div id="app">
-    <!-- Header -->
-    <header class="glass header">
-      <h1 class="neon-blue">BLACKHEX</h1>
-      <p class="neon-pink">⚡ Secure & Anon ⚡</p>
-    </header>
 
-    <!-- Main Content Area (switched by bottom nav) -->
-    <main id="main-content">
-      <!-- Home Tab -->
-      <section id="home-tab" class="tab active">
-        <div class="card glass balance-card">
-          <h2 class="neon-blue">Wallet Balance</h2>
-          <div class="balance-amount neon-pink" id="balance-display">৳0.00</div>
-          <p class="currency">BDT</p>
-        </div>
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
 
-        <div class="action-grid">
-          <button class="btn glass neon-border-blue" id="deposit-btn">
-            <span class="icon">💰</span> Deposit
-          </button>
-          <button class="btn glass neon-border-pink" id="ad-btn">
-            <span class="icon">▶️</span> Watch Ads to Earn
-          </button>
-          <button class="btn glass neon-border-proxy" id="proxy-btn">
-            <span class="icon">🦉</span> Buy Owl Proxy 200MB
-            <small class="price">৳10</small>
-          </button>
-        </div>
-      </section>
+<!-- ===== APP CONTAINER ===== -->
+<div class="app-container">
 
-      <!-- History Tab -->
-      <section id="history-tab" class="tab">
-        <h2 class="neon-blue section-title">Transaction History</h2>
-        <div id="history-list" class="history-container">
-          <p class="empty-state">No transactions yet.</p>
-        </div>
-      </section>
-
-      <!-- Profile Tab -->
-      <section id="profile-tab" class="tab">
-        <div class="profile-card glass">
-          <div class="avatar-wrapper">
-            <img id="profile-avatar" src="" alt="Avatar" class="avatar" />
-          </div>
-          <h2 id="profile-name" class="neon-blue">Loading...</h2>
-          <p id="profile-username" class="neon-pink">@username</p>
-          <div class="profile-details">
-            <div><span>Telegram ID:</span> <span id="profile-id">---</span></div>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <!-- Bottom Navigation -->
-    <nav class="bottom-nav glass">
-      <div class="nav-item active" data-tab="home">
-        <span class="nav-icon">🏠</span>
-        <span class="nav-label">Home</span>
-      </div>
-      <div class="nav-item" data-tab="history">
-        <span class="nav-icon">📋</span>
-        <span class="nav-label">History</span>
-      </div>
-      <div class="nav-item" data-tab="profile">
-        <span class="nav-icon">👤</span>
-        <span class="nav-label">Profile</span>
-      </div>
-    </nav>
+  <!-- Header -->
+  <div class="app-header">
+    <div>
+      <div class="app-logo">BLACKHEX<span>PROXY NETWORK</span></div>
+    </div>
+    <div class="header-avatar" id="headerAvatar">👤</div>
   </div>
 
-  <!-- Deposit Modal -->
-  <div id="deposit-modal" class="modal-overlay" style="display:none;">
-    <div class="modal glass">
-      <button class="modal-close" id="close-deposit">✕</button>
-      <h2 class="neon-blue">Deposit Funds</h2>
-      <form id="deposit-form">
-        <label for="method-select">Payment Method</label>
-        <select id="method-select" required>
-          <option value="">-- Select --</option>
-        </select>
+  <!-- ======== PAGE: HOME ======== -->
+  <div class="page active" id="page-home">
 
-        <label for="deposit-amount">Amount (৳)</label>
-        <input type="number" id="deposit-amount" placeholder="Enter amount" min="1" step="any" required>
+    <!-- Wallet Card -->
+    <div class="wallet-card">
+      <div class="wallet-label">◈ WALLET BALANCE</div>
+      <div class="wallet-balance">
+        <span class="currency">৳</span><span id="balanceDisplay">--</span>
+      </div>
+      <div class="wallet-user">
+        <span class="online-dot"></span>
+        <span>Agent: <strong id="usernameDisplay">Loading...</strong></span>
+        <span style="margin-left:auto;font-size:0.65rem;letter-spacing:2px;" id="tgIdDisplay"></span>
+      </div>
+    </div>
 
-        <label for="trans-id">Transaction ID</label>
-        <input type="text" id="trans-id" placeholder="Enter TXN ID" required>
+    <!-- Info Cards -->
+    <div class="info-cards" style="margin-top:4px;">
+      <div class="info-card">
+        <div class="info-card-label">Proxy Cost</div>
+        <div class="info-card-value">৳10</div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">Ad Reward</div>
+        <div class="info-card-value" id="adRewardDisplay">৳--</div>
+      </div>
+    </div>
 
-        <div class="payment-info" id="payment-details">
-          <!-- Dynamically filled payment number -->
-        </div>
+    <!-- Section: Quick Actions -->
+    <div class="section-title">◈ QUICK ACTIONS</div>
+    <div class="actions-grid">
 
-        <button type="submit" class="btn neon-border-blue full-width">Submit Deposit</button>
-      </form>
+      <!-- Deposit -->
+      <button class="action-btn pink" onclick="showDepositModal()">
+        <span class="btn-icon">💳</span>
+        <span class="btn-label">Deposit</span>
+      </button>
+
+      <!-- Watch Ad -->
+      <button class="action-btn primary" onclick="watchAd()" id="adBtn">
+        <span class="btn-icon">📺</span>
+        <span class="btn-label">Watch Ad</span>
+      </button>
+
+    </div>
+
+    <!-- Buy Proxy Hero Button -->
+    <div class="section-title">◈ PROXY SERVICE</div>
+    <div class="buy-proxy-btn" onclick="buyProxy()" id="buyProxyBtn">
+      <span class="buy-proxy-icon">🛡️</span>
+      <div class="buy-proxy-info">
+        <div class="buy-proxy-title">BUY PROXY</div>
+        <div class="buy-proxy-sub">Socks5 · High Speed · Anonymous</div>
+      </div>
+      <div class="buy-proxy-price">৳10</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Deposit Info always visible -->
+    <div class="deposit-info" id="depositSection" style="display:none;">
+      <div class="info-card-label" style="margin-bottom:4px;">📲 BKASH NUMBER</div>
+      <div class="deposit-number" id="bkashNum" onclick="copyBkash()">Loading...</div>
+      <div class="deposit-note">
+        Send money via bKash and contact admin with your transaction ID and Telegram ID to get balance credited.
+      </div>
+    </div>
+
+  </div>
+  <!-- /PAGE HOME -->
+
+  <!-- ======== PAGE: HISTORY ======== -->
+  <div class="page" id="page-history">
+    <div class="section-title" style="margin-top:10px;">◈ TRANSACTION HISTORY</div>
+    <div class="history-list" id="historyList">
+      <div class="text-center text-muted" style="padding:40px 0;">
+        <div style="font-size:2rem;margin-bottom:8px;">📜</div>
+        No transactions yet
+      </div>
     </div>
   </div>
 
-  <!-- Ad Countdown Modal -->
-  <div id="ad-modal" class="modal-overlay" style="display:none;">
-    <div class="modal glass text-center">
-      <button class="modal-close" id="cancel-ad">✕</button>
-      <h2 class="neon-pink">Watch & Earn</h2>
-      <div class="countdown-circle" id="countdown-display">15</div>
-      <p class="timer-label">seconds remaining</p>
-      <p class="small-note">Do not close this window</p>
+  <!-- ======== PAGE: PROFILE ======== -->
+  <div class="page" id="page-profile">
+    <div class="profile-card" style="margin-top:12px;">
+      <div class="profile-avatar" id="profileAvatar">👤</div>
+      <div class="profile-name" id="profileName">--</div>
+      <div class="profile-id" id="profileTgId">ID: --</div>
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <div class="profile-stat-val" id="statBalance">--</div>
+          <div class="profile-stat-label">Balance</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-val" id="statProxies">--</div>
+          <div class="profile-stat-label">Proxies</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-val" id="statAds">--</div>
+          <div class="profile-stat-label">Ads Watched</div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Proxy Purchase Result -->
-  <div id="proxy-modal" class="modal-overlay" style="display:none;">
-    <div class="modal glass text-center">
-      <button class="modal-close" id="close-proxy-modal">✕</button>
-      <h2 class="neon-blue">Proxy Purchased!</h2>
-      <p>Your Owl Proxy 200MB is ready.</p>
-      <div class="dummy-ip" id="dummy-ip-display">192.168.1.1</div>
-      <p class="small-note">Use this IP to connect.</p>
+</div><!-- /app-container -->
+
+<!-- ===== BOTTOM NAV ===== -->
+<nav class="bottom-nav">
+  <a class="nav-item active" onclick="switchPage('home', this)">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">Home</span>
+  </a>
+  <a class="nav-item" onclick="switchPage('history', this)">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">History</span>
+  </a>
+  <a class="nav-item" onclick="switchPage('profile', this)">
+    <span class="nav-icon">👤</span>
+    <span class="nav-label">Profile</span>
+  </a>
+</nav>
+
+<!-- ===== MODAL: PROXY RESULT ===== -->
+<div class="modal-overlay" id="proxyModal">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🛡️ PROXY DETAILS</div>
+    <div class="proxy-result-box" id="proxyResultBox">
+      <!-- Rows injected by JS -->
+    </div>
+    <button class="copy-all-btn" onclick="copyAllProxy()">⎘ COPY ALL DETAILS</button>
+    <button class="copy-all-btn" style="background:rgba(255,255,255,0.08);color:var(--text-muted);margin-top:10px;" onclick="closeModal('proxyModal')">CLOSE</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: DEPOSIT ===== -->
+<div class="modal-overlay" id="depositModal">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💳 DEPOSIT FUNDS</div>
+    <div style="text-align:center;margin-bottom:16px;">
+      <div class="info-card-label" style="margin-bottom:6px;">Send via bKash to</div>
+      <div class="deposit-number" id="depositBkashNum" onclick="copyBkash()">Loading...</div>
+    </div>
+    <div class="deposit-note" style="padding:14px;background:rgba(255,170,0,0.05);border:1px solid rgba(255,170,0,0.15);border-radius:12px;">
+      1. Send your desired amount via bKash<br>
+      2. Note your Transaction ID<br>
+      3. Send Transaction ID + your Telegram ID to admin<br>
+      4. Balance will be credited within minutes
+    </div>
+    <button class="copy-all-btn" style="background:linear-gradient(135deg,var(--warning),#ff6600);color:#000;margin-top:16px;" onclick="copyBkash()">📋 COPY BKASH NUMBER</button>
+    <button class="copy-all-btn" style="background:rgba(255,255,255,0.06);color:var(--text-muted);margin-top:10px;" onclick="closeModal('depositModal')">CLOSE</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: AD TIMER ===== -->
+<div class="modal-overlay" id="adTimerModal">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📺 WATCHING AD</div>
+    <div class="timer-circle">
+      <span class="timer-count" id="timerCount">15</span>
+    </div>
+    <div class="timer-label">Please watch the full ad to earn reward</div>
+    <div style="margin-top:16px;text-align:center;font-size:0.75rem;color:var(--text-muted);">
+      Reward: <span style="color:var(--success);" id="timerRewardLabel">৳--</span>
     </div>
   </div>
+</div>
 
-  <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
