@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackhex Proxy & Tasks</title>
+    <link rel="stylesheet" href="style.css">
+    <script src='//libtl.com/sdk.js' data-zone='11023737' data-sdk='show_11023737'></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h2>⚡ Blackhex ⚡</h2>
+        <div class="user-info" id="userInfo">Loading User...</div>
+        
+        <div class="wallet-box">
+            <p>Your Balance</p>
+            <div class="balance">৳ <span id="userBalance">0.00</span></div>
+        </div>
+
+        <button class="btn" style="border-color: #ff00ff; color: #ff00ff;" onclick="openDeposit()">💰 Deposit (bKash/Nagad)</button>
+        <button class="btn" id="adBtn" onclick="startAdTimer()">📺 Watch Ad (Earn ৳1)</button>
+        <button class="btn" onclick="buyProxy()">🛒 Buy Owl Proxy (৳10)</button>
+    </div>
+
+    <div class="modal" id="adModal">
+        <div class="modal-content">
+            <h3>Watching Advertisement</h3>
+            <p>Do not close this screen!</p>
+            <div class="timer-text" id="countdown">15</div>
+            <button class="btn" onclick="cancelAd()">Cancel</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
