@@ -1,29 +1,54 @@
+<!-- login.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blackhex Admin Login</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Blackhex Admin - Login</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: radial-gradient(circle at 50% 50%, #0a0a1a, #000);
+    }
+    .login-card {
+      width: 90%;
+      max-width: 380px;
+      padding: 40px 30px;
+      text-align: center;
+    }
+    .login-card h1 {
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+    }
+    .login-card input {
+      margin: 15px 0;
+    }
+  </style>
 </head>
 <body>
-
-    <div class="login-box" style="border-color: #ff00ff; box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);">
-        <h2 style="color: #ff00ff; text-shadow: 0 0 5px #ff00ff;">🔒 Admin Access</h2>
-        <input type="password" id="adminPassword" placeholder="Enter Password" style="border-color: #ff00ff; color: #ff00ff;">
-        <button class="btn" style="border-color: #ff00ff; color: #ff00ff;" onclick="checkLogin()">Login</button>
-    </div>
-
-    <script>
-        function checkLogin() {
-            const pass = document.getElementById("adminPassword").value;
-            if(pass === "12345") {
-                alert("Login Successful!");
-                window.location.href = "admin.html";
-            } else {
-                alert("❌ Wrong Password!");
-            }
-        }
-    </script>
+  <div class="login-card glass">
+    <h1 class="neon-blue">BLACKHEX</h1>
+    <h2 class="neon-pink">Admin Login</h2>
+    <input type="password" id="admin-password" placeholder="Enter password" autocomplete="off">
+    <button class="btn neon-border-blue full-width" id="login-btn">Access Panel</button>
+    <p style="margin-top:15px; opacity:0.6;">Hint: 12345</p>
+  </div>
+  <script>
+    document.getElementById('login-btn').addEventListener('click', () => {
+      const pass = document.getElementById('admin-password').value;
+      if (pass === '12345') {
+        window.location.href = 'admin.html';
+      } else {
+        alert('Incorrect password!');
+      }
+    });
+    document.getElementById('admin-password').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('login-btn').click();
+    });
+  </script>
 </body>
 </html>
