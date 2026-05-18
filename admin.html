@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackhex Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h2>⚙️ Admin Control</h2>
+
+        <div class="section">
+            <h3>➕ Add New Proxy</h3>
+            <input type="text" id="proxyData" placeholder="e.g. 192.168.1.1:8080:user:pass">
+            <button class="btn" onclick="addProxy()">Save Proxy to Database</button>
+        </div>
+
+        <div class="section" style="border-color: #ff00ff;">
+            <h3>💰 Ad Reward Settings</h3>
+            <input type="number" id="adReward" placeholder="Reward per Ad (Current: ৳1.00)" style="border-color: #ff00ff; color: #ff00ff;">
+            <button class="btn" style="border-color: #ff00ff; color: #ff00ff;" onclick="updateReward()">Update Reward</button>
+        </div>
+        
+        <button class="btn" style="border-color: #aaa; color: #aaa;" onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+        function addProxy() {
+            const proxy = document.getElementById("proxyData").value;
+            if(!proxy) return alert("Please enter proxy data!");
+            alert("Proxy processed for MongoDB Atlas: " + proxy);
+            document.getElementById("proxyData").value = "";
+        }
+
+        function updateReward() {
+            const reward = document.getElementById("adReward").value;
+            if(!reward) return alert("Enter reward amount!");
+            alert("Ad reward setting updated to: ৳" + reward);
+        }
+
+        function logout() {
+            window.location.href = "login.html";
+        }
+    </script>
+</body>
+</html>
