@@ -1,48 +1,290 @@
+<!-- admin.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blackhex Admin Panel</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Blackhex Admin Panel</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background: var(--bg-deep);
+      display: flex;
+      justify-content: center;
+      padding: 20px 0;
+    }
+    .admin-container {
+      width: 100%;
+      max-width: 500px;
+      padding: 20px;
+    }
+    .admin-section {
+      margin-bottom: 30px;
+    }
+    .admin-section h2 {
+      border-bottom: 2px solid var(--lightning-blue);
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    .input-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 0.8rem;
+    }
+    .proxy-list {
+      list-style: none;
+      margin-top: 10px;
+    }
+    .proxy-list li {
+      background: rgba(0,0,0,0.4);
+      padding: 8px;
+      border-radius: 6px;
+      margin: 5px 0;
+    }
+    .deposit-requests {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .request-item {
+      background: rgba(20,20,30,0.7);
+      padding: 15px;
+      border-radius: 10px;
+      border-left: 4px solid #ffaa00;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .action-btns {
+      display: flex;
+      gap: 5px;
+    }
+    .btn-sm {
+      padding: 5px 12px;
+      font-size: 0.8rem;
+    }
+  </style>
 </head>
 <body>
+  <div class="admin-container glass">
+    <h1 class="neon-blue" style="text-align:center;">⚙️ Admin Control</h1>
 
-    <div class="container">
-        <h2>⚙️ Admin Control</h2>
-
-        <div class="section">
-            <h3>➕ Add New Proxy</h3>
-            <input type="text" id="proxyData" placeholder="e.g. 192.168.1.1:8080:user:pass">
-            <button class="btn" onclick="addProxy()">Save Proxy to Database</button>
-        </div>
-
-        <div class="section" style="border-color: #ff00ff;">
-            <h3>💰 Ad Reward Settings</h3>
-            <input type="number" id="adReward" placeholder="Reward per Ad (Current: ৳1.00)" style="border-color: #ff00ff; color: #ff00ff;">
-            <button class="btn" style="border-color: #ff00ff; color: #ff00ff;" onclick="updateReward()">Update Reward</button>
-        </div>
-        
-        <button class="btn" style="border-color: #aaa; color: #aaa;" onclick="logout()">Logout</button>
+    <!-- Payment Methods Manager -->
+    <div class="admin-section">
+      <h2 class="neon-pink">Payment Methods</h2>
+      <div class="input-group">
+        <label>bKash Number</label>
+        <input type="text" id="bkash-input" placeholder="01XXXXXXXXX">
+      </div>
+      <div class="input-group">
+        <label>Nagad Number</label>
+        <input type="text" id="nagad-input" placeholder="01XXXXXXXXX">
+      </div>
+      <div class="input-group">
+        <label>Rocket Number</label>
+        <input type="text" id="rocket-input" placeholder="01XXXXXXXXX">
+      </div>
+      <div class="input-group">
+        <label>Binance Pay ID</label>
+        <input type="text" id="binance-input" placeholder="Binance ID">
+      </div>
+      <button class="btn neon-border-blue full-width" id="save-payments">Update Payment Methods</button>
     </div>
 
-    <script>
-        function addProxy() {
-            const proxy = document.getElementById("proxyData").value;
-            if(!proxy) return alert("Please enter proxy data!");
-            alert("Proxy processed for MongoDB Atlas: " + proxy);
-            document.getElementById("proxyData").value = "";
-        }
+    <!-- Ad Reward Settings -->
+    <div class="admin-section">
+      <h2 class="neon-pink">Ad Reward Amount</h2>
+      <div class="input-group">
+        <label>Reward per Ad (৳)</label>
+        <input type="number" id="ad-reward-input" step="0.01" min="0">
+      </div>
+      <button class="btn neon-border-blue full-width" id="save-ad-reward">Set Reward</button>
+    </div>
 
-        function updateReward() {
-            const reward = document.getElementById("adReward").value;
-            if(!reward) return alert("Enter reward amount!");
-            alert("Ad reward setting updated to: ৳" + reward);
-        }
+    <!-- Proxy Manager -->
+    <div class="admin-section">
+      <h2 class="neon-pink">Proxy Manager</h2>
+      <div class="input-group">
+        <label>Proxy Details (IP:Port or String)</label>
+        <input type="text" id="proxy-input" placeholder="192.168.1.1:8080">
+      </div>
+      <button class="btn neon-border-blue" id="add-proxy">Add Proxy</button>
+      <ul id="proxy-list" class="proxy-list"></ul>
+    </div>
 
-        function logout() {
-            window.location.href = "login.html";
+    <!-- User Deposit Requests (dummy UI with real data) -->
+    <div class="admin-section">
+      <h2 class="neon-pink">Deposit Requests</h2>
+      <div id="deposit-requests-container" class="deposit-requests">
+        <p>No pending requests.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const LS_KEYS = {
+        paymentMethods: 'blackhex_payment_methods',
+        adReward: 'blackhex_ad_reward',
+        proxies: 'blackhex_proxies',
+        transactions: 'blackhex_transactions',
+        balance: 'blackhex_balance'
+      };
+
+      function getObj(key) {
+        return JSON.parse(localStorage.getItem(key) || '{}');
+      }
+      function setObj(key, val) {
+        localStorage.setItem(key, JSON.stringify(val));
+      }
+      function getArray(key) {
+        return JSON.parse(localStorage.getItem(key) || '[]');
+      }
+      function getNumber(key) {
+        return parseFloat(localStorage.getItem(key)) || 0;
+      }
+
+      // Payment Methods
+      const bkashInput = document.getElementById('bkash-input');
+      const nagadInput = document.getElementById('nagad-input');
+      const rocketInput = document.getElementById('rocket-input');
+      const binanceInput = document.getElementById('binance-input');
+
+      function loadPayments() {
+        const methods = getObj(LS_KEYS.paymentMethods);
+        bkashInput.value = methods.bkash || '';
+        nagadInput.value = methods.nagad || '';
+        rocketInput.value = methods.rocket || '';
+        binanceInput.value = methods.binance || '';
+      }
+
+      document.getElementById('save-payments').addEventListener('click', () => {
+        const updated = {
+          bkash: bkashInput.value.trim(),
+          nagad: nagadInput.value.trim(),
+          rocket: rocketInput.value.trim(),
+          binance: binanceInput.value.trim()
+        };
+        setObj(LS_KEYS.paymentMethods, updated);
+        alert('Payment methods updated! Users will see new numbers.');
+      });
+
+      // Ad Reward
+      const adRewardInput = document.getElementById('ad-reward-input');
+      function loadAdReward() {
+        adRewardInput.value = getNumber(LS_KEYS.adReward) || 1.0;
+      }
+      document.getElementById('save-ad-reward').addEventListener('click', () => {
+        const val = parseFloat(adRewardInput.value);
+        if (isNaN(val) || val < 0) {
+          alert('Invalid amount');
+          return;
         }
-    </script>
+        localStorage.setItem(LS_KEYS.adReward, val);
+        alert(`Ad reward set to ৳${val.toFixed(2)}`);
+      });
+
+      // Proxies
+      const proxyInput = document.getElementById('proxy-input');
+      const proxyListEl = document.getElementById('proxy-list');
+      function renderProxies() {
+        const proxies = getArray(LS_KEYS.proxies);
+        proxyListEl.innerHTML = '';
+        if (proxies.length === 0) {
+          proxyListEl.innerHTML = '<li>No proxies added.</li>';
+          return;
+        }
+        proxies.forEach((p, idx) => {
+          const li = document.createElement('li');
+          li.textContent = p;
+          const delBtn = document.createElement('button');
+          delBtn.textContent = '❌';
+          delBtn.style.background = 'none';
+          delBtn.style.border = 'none';
+          delBtn.style.cursor = 'pointer';
+          delBtn.addEventListener('click', () => {
+            const updated = getArray(LS_KEYS.proxies);
+            updated.splice(idx, 1);
+            setObj(LS_KEYS.proxies, updated);
+            renderProxies();
+          });
+          li.appendChild(delBtn);
+          proxyListEl.appendChild(li);
+        });
+      }
+
+      document.getElementById('add-proxy').addEventListener('click', () => {
+        const val = proxyInput.value.trim();
+        if (!val) return;
+        const proxies = getArray(LS_KEYS.proxies);
+        proxies.push(val);
+        setObj(LS_KEYS.proxies, proxies);
+        proxyInput.value = '';
+        renderProxies();
+      });
+
+      // Deposit Requests
+      function renderDepositRequests() {
+        const txns = getArray(LS_KEYS.transactions);
+        const pending = txns.filter(t => t.type === 'pending' && t.status === 'pending');
+        const container = document.getElementById('deposit-requests-container');
+        if (pending.length === 0) {
+          container.innerHTML = '<p>No pending requests.</p>';
+          return;
+        }
+        container.innerHTML = '';
+        pending.forEach((tx, idx) => {
+          const originalIndex = txns.indexOf(tx); // careful: may have duplicates, use id if we had
+          const div = document.createElement('div');
+          div.className = 'request-item';
+          div.innerHTML = `
+            <div>
+              <strong>${tx.description}</strong><br>
+              <small>${new Date(tx.timestamp).toLocaleString()}</small>
+            </div>
+            <div class="action-btns">
+              <button class="btn btn-sm neon-border-blue approve-btn">Approve</button>
+              <button class="btn btn-sm neon-border-pink reject-btn">Reject</button>
+            </div>
+          `;
+          div.querySelector('.approve-btn').addEventListener('click', () => {
+            const allTxns = getArray(LS_KEYS.transactions);
+            const txn = allTxns.find(t => t.timestamp === tx.timestamp && t.status === 'pending');
+            if (txn) {
+              txn.status = 'approved';
+              txn.type = 'credit'; // user will see as credit
+              // Optionally add balance to user (the admin is acting on behalf of the user)
+              // In a real system you'd know which user, but here we just change status.
+              setObj(LS_KEYS.transactions, allTxns);
+              renderDepositRequests();
+              alert('Deposit approved!');
+            }
+          });
+          div.querySelector('.reject-btn').addEventListener('click', () => {
+            const allTxns = getArray(LS_KEYS.transactions);
+            const txn = allTxns.find(t => t.timestamp === tx.timestamp && t.status === 'pending');
+            if (txn) {
+              txn.status = 'rejected';
+              setObj(LS_KEYS.transactions, allTxns);
+              renderDepositRequests();
+              alert('Deposit rejected.');
+            }
+          });
+          container.appendChild(div);
+        });
+      }
+
+      // Initial load
+      loadPayments();
+      loadAdReward();
+      renderProxies();
+      renderDepositRequests();
+      // Refresh deposit requests every 2 seconds to catch new ones (optional)
+      setInterval(renderDepositRequests, 2000);
+    })();
+  </script>
 </body>
 </html>
