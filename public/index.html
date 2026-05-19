@@ -1,131 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
   <title>Blackhex</title>
-  <link rel="stylesheet" href="style.css" />
-  <!-- Telegram WebApp SDK -->
+  <link rel="stylesheet" href="style.css"/>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- Monitag Ad SDK -->
   <script src='//libtl.com/sdk.js' data-zone='11023737' data-sdk='show_11023737'></script>
 </head>
 <body>
 
-<!-- ===== TOAST ===== -->
 <div class="toast" id="toast"></div>
 
-<!-- ===== APP CONTAINER ===== -->
 <div class="app-container">
 
   <!-- Header -->
   <div class="app-header">
-    <div>
-      <div class="app-logo">BLACKHEX<span>PROXY NETWORK</span></div>
-    </div>
+    <div class="app-logo">BLACKHEX<span>PROXY NETWORK</span></div>
     <div class="header-avatar" id="headerAvatar">👤</div>
   </div>
 
-  <!-- ======== PAGE: HOME ======== -->
+  <!-- ── HOME PAGE ── -->
   <div class="page active" id="page-home">
-
-    <!-- Wallet Card -->
+    <!-- Wallet -->
     <div class="wallet-card">
       <div class="wallet-label">◈ WALLET BALANCE</div>
-      <div class="wallet-balance">
-        <span class="currency">৳</span><span id="balanceDisplay">--</span>
-      </div>
+      <div class="wallet-balance"><span class="currency">৳</span><span id="balanceDisplay">--</span></div>
       <div class="wallet-user">
         <span class="online-dot"></span>
         <span>Agent: <strong id="usernameDisplay">Loading...</strong></span>
-        <span style="margin-left:auto;font-size:0.65rem;letter-spacing:2px;" id="tgIdDisplay"></span>
+        <span style="margin-left:auto;font-size:.65rem;letter-spacing:2px;" id="tgIdDisplay"></span>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:12px;">
+        <div class="mini-stat"><span class="mini-stat-val" id="pointsDisplay">0</span><span class="mini-stat-label">Points</span></div>
+        <div class="mini-stat"><span class="mini-stat-val" id="adsDisplay">0</span><span class="mini-stat-label">Ads</span></div>
+        <div class="mini-stat"><span class="mini-stat-val" id="proxiesDisplay">0</span><span class="mini-stat-label">Proxies</span></div>
       </div>
     </div>
 
     <!-- Info Cards -->
-    <div class="info-cards" style="margin-top:4px;">
-      <div class="info-card">
-        <div class="info-card-label">Proxy Cost</div>
-        <div class="info-card-value">৳10</div>
-      </div>
-      <div class="info-card">
-        <div class="info-card-label">Ad Reward</div>
-        <div class="info-card-value" id="adRewardDisplay">৳--</div>
-      </div>
+    <div class="info-cards">
+      <div class="info-card"><div class="info-card-label">Proxy Cost</div><div class="info-card-value">৳10</div></div>
+      <div class="info-card"><div class="info-card-label">Ad Reward</div><div class="info-card-value" id="adRewardDisplay">৳--</div></div>
     </div>
 
-    <!-- Section: Quick Actions -->
+    <!-- Quick Actions -->
     <div class="section-title">◈ QUICK ACTIONS</div>
     <div class="actions-grid">
-
-      <!-- Deposit -->
       <button class="action-btn pink" onclick="showDepositModal()">
-        <span class="btn-icon">💳</span>
-        <span class="btn-label">Deposit</span>
+        <span class="btn-icon">💳</span><span class="btn-label">Deposit</span>
       </button>
-
-      <!-- Watch Ad -->
       <button class="action-btn primary" onclick="watchAd()" id="adBtn">
-        <span class="btn-icon">📺</span>
-        <span class="btn-label">Watch Ad</span>
+        <span class="btn-icon">📺</span><span class="btn-label">Watch Ad</span>
       </button>
-
+      <button class="action-btn purple" onclick="switchPage('claim',null)">
+        <span class="btn-icon">🎁</span><span class="btn-label">Daily Claim</span>
+      </button>
+      <button class="action-btn" style="border-color:rgba(255,170,0,.3);box-shadow:0 0 20px rgba(255,170,0,.08);" onclick="switchPage('spinner',null)">
+        <span class="btn-icon">🎰</span><span class="btn-label">Spinner</span>
+      </button>
     </div>
 
-    <!-- Buy Proxy Hero Button -->
+    <!-- Proxy Buy -->
     <div class="section-title">◈ PROXY SERVICE</div>
     <div class="buy-proxy-btn" onclick="buyProxy()" id="buyProxyBtn">
-      <span class="buy-proxy-icon">🛡️</span>
+      <img src="https://i.supaimg.com/6e0b602c-5350-4fe9-b4fc-46a57958ab96/0b3e6553-917a-4124-940c-068231f1b4c3.png"
+           alt="Proxy" style="width:52px;height:52px;object-fit:cover;border-radius:12px;flex-shrink:0;"/>
       <div class="buy-proxy-info">
         <div class="buy-proxy-title">BUY PROXY</div>
         <div class="buy-proxy-sub">Socks5 · High Speed · Anonymous</div>
       </div>
       <div class="buy-proxy-price">৳10</div>
     </div>
-
-    <div class="divider"></div>
-
-    <!-- Deposit Info always visible -->
-    <div class="deposit-info" id="depositSection" style="display:none;">
-      <div class="info-card-label" style="margin-bottom:4px;">📲 BKASH NUMBER</div>
-      <div class="deposit-number" id="bkashNum" onclick="copyBkash()">Loading...</div>
-      <div class="deposit-note">
-        Send money via bKash and contact admin with your transaction ID and Telegram ID to get balance credited.
-      </div>
-    </div>
-
   </div>
-  <!-- /PAGE HOME -->
 
-  <!-- ======== PAGE: HISTORY ======== -->
+  <!-- ── HISTORY PAGE ── -->
   <div class="page" id="page-history">
     <div class="section-title" style="margin-top:10px;">◈ TRANSACTION HISTORY</div>
-    <div class="history-list" id="historyList">
-      <div class="text-center text-muted" style="padding:40px 0;">
-        <div style="font-size:2rem;margin-bottom:8px;">📜</div>
-        No transactions yet
-      </div>
+    <!-- Tabs -->
+    <div class="htabs">
+      <button class="htab active" onclick="switchHTab('all',this)">All</button>
+      <button class="htab" onclick="switchHTab('deposit',this)">Deposits</button>
+      <button class="htab" onclick="switchHTab('proxy',this)">Proxies</button>
+      <button class="htab" onclick="switchHTab('earn',this)">Earnings</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <!-- ── LEADERBOARD PAGE ── -->
+  <div class="page" id="page-leaderboard">
+    <div class="section-title" style="margin-top:10px;">◈ LEADERBOARD</div>
+    <div class="lb-subtitle">Top earners from ad rewards</div>
+    <div id="leaderboardList"></div>
+  </div>
+
+  <!-- ── DAILY CLAIM PAGE ── -->
+  <div class="page" id="page-claim">
+    <div class="section-title" style="margin-top:10px;">◈ DAILY CLAIM</div>
+    <div class="claim-info-box">
+      <div class="claim-amount">৳1</div>
+      <div class="claim-desc">Free daily reward — claim every day!</div>
+      <button class="claim-btn" id="claimBtn" onclick="doClaimDaily()">CLAIM TODAY</button>
+    </div>
+    <div class="section-title">◈ CLAIM CALENDAR</div>
+    <div id="claimCalendar"></div>
+  </div>
+
+  <!-- ── SPINNER PAGE ── -->
+  <div class="page" id="page-spinner">
+    <div class="section-title" style="margin-top:10px;">◈ LUCKY SPINNER</div>
+    <div class="spinner-cost-info">Costs <span style="color:var(--neon-cyan)">2 Points</span> per spin · You have <span style="color:var(--neon-pink)" id="spinnerPointsDisplay">0</span> points</div>
+    <div class="wheel-wrapper">
+      <div class="wheel-pointer">▼</div>
+      <canvas id="wheelCanvas" width="300" height="300"></canvas>
+    </div>
+    <div class="spinner-result hidden" id="spinnerResult"></div>
+    <button class="spin-btn" id="spinBtn" onclick="doSpin()">
+      <span id="spinBtnText">🎰 SPIN (2 Points)</span>
+    </button>
+    <div class="spinner-odds">
+      <span>80% → 1–3 pts</span>
+      <span>20% → 4–10 pts</span>
     </div>
   </div>
 
-  <!-- ======== PAGE: PROFILE ======== -->
-  <div class="page" id="page-profile">
-    <div class="profile-card" style="margin-top:12px;">
-      <div class="profile-avatar" id="profileAvatar">👤</div>
-      <div class="profile-name" id="profileName">--</div>
-      <div class="profile-id" id="profileTgId">ID: --</div>
-      <div class="profile-stats">
-        <div class="profile-stat">
-          <div class="profile-stat-val" id="statBalance">--</div>
-          <div class="profile-stat-label">Balance</div>
+  <!-- ── AI SUPPORT PAGE ── -->
+  <div class="page" id="page-support">
+    <div class="section-title" style="margin-top:10px;">◈ AI SUPPORT</div>
+    <div class="support-tabs">
+      <button class="htab active" onclick="switchSupportTab('ai',this)">🤖 AI Chat</button>
+      <button class="htab" onclick="switchSupportTab('admin',this)">👨‍💻 Admin</button>
+    </div>
+
+    <!-- AI Chat -->
+    <div id="supportAiTab">
+      <div class="ai-chat-box" id="aiChatBox">
+        <div class="ai-msg bot">
+          <div class="ai-bubble">👋 স্বাগতম! আমি Blackhex AI Assistant। কীভাবে সাহায্য করতে পারি?<br><br>
+          আপনি জিজ্ঞেস করতে পারেন:<br>
+          • কীভাবে Deposit করব?<br>
+          • কীভাবে বিনামূল্যে Proxy পাব?<br>
+          • Spinner কীভাবে কাজ করে?</div>
         </div>
-        <div class="profile-stat">
-          <div class="profile-stat-val" id="statProxies">--</div>
-          <div class="profile-stat-label">Proxies</div>
-        </div>
-        <div class="profile-stat">
-          <div class="profile-stat-val" id="statAds">--</div>
-          <div class="profile-stat-label">Ads Watched</div>
+      </div>
+      <div class="ai-input-row">
+        <input type="text" class="ai-input" id="aiInput" placeholder="Type your question..." onkeydown="if(event.key==='Enter')sendAiMsg()"/>
+        <button class="ai-send-btn" onclick="sendAiMsg()">➤</button>
+      </div>
+    </div>
+
+    <!-- Admin Contact -->
+    <div id="supportAdminTab" class="hidden">
+      <div class="admin-contact-card">
+        <div style="font-size:3rem;margin-bottom:12px;">👨‍💻</div>
+        <div class="admin-contact-name">DEVELOPER_RAIM</div>
+        <div class="admin-contact-sub">Blackhex Admin & Developer</div>
+        <a href="https://t.me/DEVELOPER_RAIM" target="_blank" class="admin-contact-btn">
+          ✈️ Open in Telegram
+        </a>
+        <div class="admin-contact-note">
+          For deposit approval, proxy issues, or any account problems — contact admin directly on Telegram.
         </div>
       </div>
     </div>
@@ -133,56 +167,69 @@
 
 </div><!-- /app-container -->
 
-<!-- ===== BOTTOM NAV ===== -->
+<!-- ── BOTTOM NAV ── -->
 <nav class="bottom-nav">
-  <a class="nav-item active" onclick="switchPage('home', this)">
-    <span class="nav-icon">🏠</span>
-    <span class="nav-label">Home</span>
+  <a class="nav-item active" onclick="switchPage('home',this)">
+    <span class="nav-icon">🏠</span><span class="nav-label">Home</span>
   </a>
-  <a class="nav-item" onclick="switchPage('history', this)">
-    <span class="nav-icon">📋</span>
-    <span class="nav-label">History</span>
+  <a class="nav-item" onclick="switchPage('history',this)">
+    <span class="nav-icon">📋</span><span class="nav-label">History</span>
   </a>
-  <a class="nav-item" onclick="switchPage('profile', this)">
-    <span class="nav-icon">👤</span>
-    <span class="nav-label">Profile</span>
+  <a class="nav-item" onclick="switchPage('leaderboard',this)">
+    <span class="nav-icon">🏆</span><span class="nav-label">Ranks</span>
+  </a>
+  <a class="nav-item" onclick="switchPage('support',this)">
+    <span class="nav-icon">💬</span><span class="nav-label">Support</span>
   </a>
 </nav>
 
-<!-- ===== MODAL: PROXY RESULT ===== -->
+<!-- ════ MODAL: PROXY RESULT ════ -->
 <div class="modal-overlay" id="proxyModal">
   <div class="modal-box">
     <div class="modal-handle"></div>
     <div class="modal-title">🛡️ PROXY DETAILS</div>
-    <div class="proxy-result-box" id="proxyResultBox">
-      <!-- Rows injected by JS -->
-    </div>
+    <div class="proxy-result-box" id="proxyResultBox"></div>
     <button class="copy-all-btn" onclick="copyAllProxy()">⎘ COPY ALL DETAILS</button>
-    <button class="copy-all-btn" style="background:rgba(255,255,255,0.08);color:var(--text-muted);margin-top:10px;" onclick="closeModal('proxyModal')">CLOSE</button>
+    <button class="copy-all-btn" style="background:rgba(255,255,255,.06);color:var(--text-muted);margin-top:10px;" onclick="closeModal('proxyModal')">CLOSE</button>
   </div>
 </div>
 
-<!-- ===== MODAL: DEPOSIT ===== -->
+<!-- ════ MODAL: DEPOSIT ════ -->
 <div class="modal-overlay" id="depositModal">
   <div class="modal-box">
     <div class="modal-handle"></div>
     <div class="modal-title">💳 DEPOSIT FUNDS</div>
-    <div style="text-align:center;margin-bottom:16px;">
-      <div class="info-card-label" style="margin-bottom:6px;">Send via bKash to</div>
-      <div class="deposit-number" id="depositBkashNum" onclick="copyBkash()">Loading...</div>
+
+    <!-- Step 1: Choose Method -->
+    <div id="depositStep1">
+      <div class="form-label" style="margin-bottom:10px;">Select Payment Method</div>
+      <div id="methodList" style="display:flex;flex-direction:column;gap:8px;"></div>
     </div>
-    <div class="deposit-note" style="padding:14px;background:rgba(255,170,0,0.05);border:1px solid rgba(255,170,0,0.15);border-radius:12px;">
-      1. Send your desired amount via bKash<br>
-      2. Note your Transaction ID<br>
-      3. Send Transaction ID + your Telegram ID to admin<br>
-      4. Balance will be credited within minutes
+
+    <!-- Step 2: Enter Amount + TxID -->
+    <div id="depositStep2" class="hidden">
+      <div class="selected-method-banner" id="selectedMethodBanner"></div>
+      <div class="form-group" style="margin-top:12px;">
+        <label class="form-label">Amount (৳)</label>
+        <input type="number" class="form-input" id="depositAmount" placeholder="e.g. 100" min="10"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Transaction ID</label>
+        <input type="text" class="form-input" id="depositTxId" placeholder="Enter your TxID"/>
+      </div>
+      <button class="copy-all-btn" style="background:linear-gradient(135deg,var(--warning),#ff6600);color:#000;" onclick="submitDeposit()">
+        📤 SUBMIT DEPOSIT
+      </button>
+      <button class="copy-all-btn" style="background:rgba(255,255,255,.06);color:var(--text-muted);margin-top:8px;" onclick="showDepositStep(1)">
+        ← BACK
+      </button>
     </div>
-    <button class="copy-all-btn" style="background:linear-gradient(135deg,var(--warning),#ff6600);color:#000;margin-top:16px;" onclick="copyBkash()">📋 COPY BKASH NUMBER</button>
-    <button class="copy-all-btn" style="background:rgba(255,255,255,0.06);color:var(--text-muted);margin-top:10px;" onclick="closeModal('depositModal')">CLOSE</button>
+
+    <button class="copy-all-btn" style="background:rgba(255,255,255,.04);color:var(--text-muted);margin-top:10px;" onclick="closeModal('depositModal')">CANCEL</button>
   </div>
 </div>
 
-<!-- ===== MODAL: AD TIMER ===== -->
+<!-- ════ MODAL: AD TIMER ════ -->
 <div class="modal-overlay" id="adTimerModal">
   <div class="modal-box">
     <div class="modal-handle"></div>
@@ -190,10 +237,20 @@
     <div class="timer-circle">
       <span class="timer-count" id="timerCount">15</span>
     </div>
-    <div class="timer-label">Please watch the full ad to earn reward</div>
-    <div style="margin-top:16px;text-align:center;font-size:0.75rem;color:var(--text-muted);">
+    <div class="timer-label">Watch the full ad to earn reward</div>
+    <div style="margin-top:12px;text-align:center;font-size:.75rem;color:var(--text-muted);">
       Reward: <span style="color:var(--success);" id="timerRewardLabel">৳--</span>
     </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: HISTORY DETAIL ════ -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="detailModalTitle">DETAILS</div>
+    <div id="detailModalBody"></div>
+    <button class="copy-all-btn" style="background:rgba(255,255,255,.06);color:var(--text-muted);margin-top:12px;" onclick="closeModal('detailModal')">CLOSE</button>
   </div>
 </div>
 
