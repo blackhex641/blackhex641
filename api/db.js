@@ -16,7 +16,7 @@ export async function connectDB() {
 const UserSchema = new mongoose.Schema({
   telegramId:    { type: String, required: true, unique: true, index: true },
   username:      { type: String, default: '' },
-  balance:       { type: Number, default: 0 },
+  balance:       { type: Number, default: 0 },   // ← মূল balance (Ad + Deposit মিলিয়ে)
   points:        { type: Number, default: 0 },
   proxiesBought: { type: Number, default: 0 },
   adsWatched:    { type: Number, default: 0 },
@@ -113,11 +113,18 @@ export default async function handler(req, res) {
     }
 
     if (action === 'getSettings') {
-      const [adR, bkash] = await Promise.all([
+      const [adR, bkash, spinCostDoc] = await Promise.all([
         Settings.findOne({ key: 'adReward' }),
         Settings.findOne({ key: 'bkashNumber' }),
+        Settings.findOne({ key: 'spinCost' }),
       ]);
-      return res.json({ settings: { adReward: adR?.value ?? 2, bkashNumber: bkash?.value ?? 'N/A' } });
+      return res.json({
+        settings: {
+          adReward:    adR?.value      ?? 2,
+          bkashNumber: bkash?.value    ?? 'N/A',
+          spinCost:    spinCostDoc?.value ?? 5,   // ← spin cost setting
+        }
+      });
     }
 
     if (action === 'getPaymentMethods') {
@@ -171,9 +178,9 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Already claimed today', claimed: true });
       }
 
-      user.balance += 1;
-      user.totalEarned = (user.totalEarned || 0) + 1;
-      user.lastClaim = today;
+      user.balance     += 1;
+      user.totalEarned  = (user.totalEarned || 0) + 1;
+      user.lastClaim    = today;
       if (!user.claimHistory.includes(today)) user.claimHistory.push(today);
       await user.save();
 
@@ -191,46 +198,79 @@ export default async function handler(req, res) {
       return res.json({ lastClaim: user.lastClaim, claimHistory: user.claimHistory || [] });
     }
 
+    // ════════════════════════════════
+    // ✅ SPIN — FIXED
+    // সমস্যা ছিল:
+    //   1. শুধু points চেক করছিল — balance দিয়ে spin করা যেত না
+    //   2. Prize ঠিকমতো balance-এ যোগ হচ্ছিল না
+    // ════════════════════════════════
     if (action === 'spin') {
       const { telegramId } = req.body;
       if (!telegramId) return res.status(400).json({ error: 'telegramId required' });
 
       const user = await User.findOne({ telegramId });
       if (!user) return res.status(404).json({ error: 'User not found' });
-      if ((user.points || 0) < 2) return res.status(400).json({ error: 'Not enough points (need 2)' });
 
-      // 80% chance: 1–3 points, 20% chance: 4–10 points
+      // ✅ FIX 2 — Settings থেকে spinCost নাও (default ৳5)
+      const spinCostDoc = await Settings.findOne({ key: 'spinCost' });
+      const spinCost    = Number(spinCostDoc?.value ?? 5);
+
+      // ✅ FIX 2 — Total balance = balance (single field, ad+deposit সব এখানেই আছে)
+      const currentBalance = Number(user.balance || 0);
+
+      if (currentBalance < spinCost) {
+        return res.status(400).json({
+          error: `Insufficient balance. Need ৳${spinCost}, you have ৳${currentBalance.toFixed(2)}`
+        });
+      }
+
+      // Prize calculation — 80% chance: 1–3, 20% chance: 4–10
       let prize;
       const rand = Math.random();
       if (rand < 0.80) {
-        prize = Math.floor(Math.random() * 3) + 1; // 1,2,3
+        prize = Math.floor(Math.random() * 3) + 1; // 1, 2, 3
       } else {
-        prize = Math.floor(Math.random() * 7) + 4; // 4..10
+        prize = Math.floor(Math.random() * 7) + 4; // 4 .. 10
       }
 
-      // Determine if it's "Better Luck" (only when prize=1 in the 80%)
       const isBetterLuck = (prize === 1 && rand < 0.80);
 
-      user.points -= 2;
+      // ✅ FIX 3 — আগে spinCost কাটো, তারপর prize যোগ করো (betterLuck হলে prize নেই)
+      user.balance = currentBalance - spinCost;
+
       if (!isBetterLuck) {
-        user.balance += prize;
-        user.totalEarned = (user.totalEarned || 0) + prize;
+        user.balance     += prize;
+        user.totalEarned  = (user.totalEarned || 0) + prize;
       }
+
+      // Balance কখনো 0-এর নিচে যাবে না
+      user.balance = Math.max(0, user.balance);
+
       await user.save();
 
       if (!isBetterLuck) {
         await Transaction.create({
-          telegramId, type: 'spin', amount: prize,
-          description: `Spinner win: ৳${prize}`
+          telegramId,
+          type: 'spin',
+          amount: prize - spinCost,   // net gain/loss রেকর্ড
+          description: `Spin: paid ৳${spinCost}, won ৳${prize} (net: ৳${prize - spinCost})`
+        });
+      } else {
+        await Transaction.create({
+          telegramId,
+          type: 'spin',
+          amount: -spinCost,
+          description: `Spin: paid ৳${spinCost}, Better Luck (no prize)`
         });
       }
 
       return res.json({
-        success: true,
+        success:    true,
         prize,
         betterLuck: isBetterLuck,
+        spinCost,
         newBalance: user.balance,
-        newPoints: user.points
+        newPoints:  user.points
       });
     }
 
@@ -274,9 +314,22 @@ export default async function handler(req, res) {
     }
 
     if (action === 'saveSettings') {
-      const { adReward, bkashNumber } = req.body;
-      await Settings.findOneAndUpdate({ key: 'adReward' }, { key: 'adReward', value: adReward }, { upsert: true });
-      await Settings.findOneAndUpdate({ key: 'bkashNumber' }, { key: 'bkashNumber', value: bkashNumber }, { upsert: true });
+      const { adReward, spinCost, bkashNumber } = req.body;
+      await Settings.findOneAndUpdate(
+        { key: 'adReward' },
+        { key: 'adReward', value: adReward },
+        { upsert: true }
+      );
+      await Settings.findOneAndUpdate(
+        { key: 'spinCost' },
+        { key: 'spinCost', value: Number(spinCost ?? 5) },
+        { upsert: true }
+      );
+      await Settings.findOneAndUpdate(
+        { key: 'bkashNumber' },
+        { key: 'bkashNumber', value: bkashNumber },
+        { upsert: true }
+      );
       return res.json({ success: true });
     }
 
@@ -284,15 +337,35 @@ export default async function handler(req, res) {
       const { telegramId, amount } = req.body;
       const user = await User.findOne({ telegramId });
       if (!user) return res.status(404).json({ error: 'User not found' });
-      user.balance = Math.max(0, user.balance + Number(amount));
+      user.balance = Math.max(0, (user.balance || 0) + Number(amount));
       await user.save();
-      await Transaction.create({ telegramId, type: 'adjust', amount: Number(amount), description: 'Admin balance adjustment' });
+      await Transaction.create({
+        telegramId,
+        type: 'adjust',
+        amount: Number(amount),
+        description: 'Admin balance adjustment'
+      });
       return res.json({ success: true, newBalance: user.balance });
     }
 
+    // ✅ FIX 1 — allDeposits: DB-তে duplicate নেই,
+    //    কিন্তু _id দিয়ে sort করে unique নিশ্চিত করা হলো
     if (action === 'allDeposits') {
-      const deposits = await Deposit.find().sort({ createdAt: -1 }).limit(200);
-      return res.json({ deposits });
+      const deposits = await Deposit.find()
+        .sort({ createdAt: -1 })
+        .limit(200)
+        .lean();  // ← lean() দিলে plain object আসে, faster
+
+      // Extra safety: _id দিয়ে server-side deduplicate
+      const seen    = new Set();
+      const unique  = deposits.filter(d => {
+        const key = String(d._id);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      return res.json({ deposits: unique });
     }
 
     if (action === 'approveDeposit') {
@@ -304,19 +377,20 @@ export default async function handler(req, res) {
       deposit.status = 'approved';
       await deposit.save();
 
+      // ✅ balance-এ deposit amount যোগ করো
       const user = await User.findOne({ telegramId: deposit.telegramId });
       if (user) {
-        user.balance += deposit.amount;
-        user.totalEarned = (user.totalEarned || 0) + deposit.amount;
+        user.balance     += Number(deposit.amount);
+        user.totalEarned  = (user.totalEarned || 0) + Number(deposit.amount);
         await user.save();
       }
 
       await Transaction.create({
-        telegramId: deposit.telegramId,
-        type: 'deposit',
-        amount: deposit.amount,
+        telegramId:  deposit.telegramId,
+        type:        'deposit',
+        amount:      deposit.amount,
         description: `Deposit approved via ${deposit.method} — TxID: ${deposit.txId}`,
-        depositId: String(depositId)
+        depositId:   String(depositId)
       });
 
       return res.json({ success: true });
@@ -328,7 +402,7 @@ export default async function handler(req, res) {
       if (!deposit) return res.status(404).json({ error: 'Deposit not found' });
       if (deposit.status !== 'pending') return res.status(400).json({ error: 'Already processed' });
 
-      deposit.status = 'rejected';
+      deposit.status     = 'rejected';
       deposit.rejectNote = rejectNote || 'Rejected by admin';
       await deposit.save();
 
