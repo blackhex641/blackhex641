@@ -1,5 +1,5 @@
 /* ============================================================
-   BLACKHEX — app.js  (Full Client Logic)
+   BLACKHEX — app.js  (Full Client Logic - Fixed)
    ============================================================ */
 
 const tg = window.Telegram?.WebApp;
@@ -339,7 +339,12 @@ async function loadHistory() {
     const depData = await depRes.json();
 
     const txItems  = (txData.history || []).map(i => ({ ...i, _src: 'tx' }));
-    const depItems = (depData.deposits || []).map(i => ({ ...i, _src: 'dep' }));
+    
+    // FIX applied: Approved deposit গুলো এখানে ফিল্টার করে বাদ দেওয়া হয়েছে যাতে ডুপ্লিকেট না হয়
+    const depItems = (depData.deposits || [])
+        .filter(i => i.status !== 'approved') 
+        .map(i => ({ ...i, _src: 'dep' }));
+        
     allHistory = [...txItems, ...depItems].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
     renderHistory();
   } catch(e) {
