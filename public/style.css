@@ -1,4 +1,4 @@
-/* ============================================
+"/* ============================================
    BLACKHEX - Cyberpunk UI
    ============================================ */
 
@@ -35,12 +35,12 @@ html, body {
   overflow-x: hidden;
 }
 
-/* ── Scrollbar ── */
+/* â”€â”€ Scrollbar â”€â”€ */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg-primary); }
 ::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 2px; }
 
-/* ── Background Grid ── */
+/* â”€â”€ Background Grid â”€â”€ */
 body::before {
   content: '';
   position: fixed;
@@ -53,7 +53,7 @@ body::before {
   z-index: 0;
 }
 
-/* ── Glow Orbs ── */
+/* â”€â”€ Glow Orbs â”€â”€ */
 body::after {
   content: '';
   position: fixed;
@@ -77,7 +77,7 @@ body::after {
   z-index: 1;
 }
 
-/* ── Header ── */
+/* â”€â”€ Header â”€â”€ */
 .app-header {
   display: flex;
   align-items: center;
@@ -311,7 +311,7 @@ body::after {
 .action-btn.pink .btn-label { color: var(--neon-pink); }
 .action-btn.purple .btn-label { color: var(--neon-purple); }
 
-/* ── Buy Proxy Button (hero) ── */
+/* â”€â”€ Buy Proxy Button (hero) â”€â”€ */
 .buy-proxy-btn {
   margin: 16px;
   padding: 20px;
@@ -506,7 +506,7 @@ body::after {
   text-align: center;
 }
 
-/* ── Proxy Result Modal ── */
+/* â”€â”€ Proxy Result Modal â”€â”€ */
 .proxy-result-box {
   background: rgba(0,243,255,0.04);
   border: 1px solid rgba(0,243,255,0.15);
@@ -559,7 +559,7 @@ body::after {
 
 .copy-all-btn:active { transform: scale(0.97); opacity: 0.9; }
 
-/* ── Timer Modal ── */
+/* â”€â”€ Timer Modal â”€â”€ */
 .timer-circle {
   width: 120px;
   height: 120px;
@@ -633,7 +633,7 @@ body::after {
 .page { display: none; }
 .page.active { display: block; }
 
-/* ── History Page ── */
+/* â”€â”€ History Page â”€â”€ */
 .history-list {
   padding: 0 16px;
   display: flex;
@@ -680,7 +680,7 @@ body::after {
 .history-amount.plus { color: var(--success); }
 .history-amount.minus { color: var(--danger); }
 
-/* ── Profile Page ── */
+/* â”€â”€ Profile Page â”€â”€ */
 .profile-card {
   margin: 12px 16px;
   padding: 28px 24px;
@@ -1055,9 +1055,8 @@ body::after {
   background: var(--glass-border);
   margin: 16px;
 }
-
 /* ============================================
-   NEW ADDITIONS
+   NEW ADDITIONS â€” Paste below existing CSS
    ============================================ */
 
 /* Mini Stats in Wallet */
@@ -1128,100 +1127,23 @@ body::after {
 .cal-future  { background:rgba(255,255,255,.03); color:var(--text-muted); }
 .cal-x { position:absolute; top:0; right:2px; font-size:.55rem; color:var(--danger); }
 
-/* ============================================
-   SPINNER — ✅ FIXED: Result box centered on wheel
-   ============================================ */
-.spinner-cost-info {
-  text-align: center;
-  font-size: .8rem;
-  color: var(--text-muted);
-  padding: 0 0 12px;
-}
-
-.wheel-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  position: relative; /* ✅ Required: absolute child নিজের মধ্যে রাখবে */
-}
-
-.wheel-pointer {
-  font-size: 1.5rem;
-  color: var(--neon-cyan);
-  text-shadow: 0 0 10px var(--neon-cyan);
-  z-index: 2;
-  margin-bottom: -4px;
-}
-
-#wheelCanvas {
-  border-radius: 50%;
-  box-shadow: 0 0 30px rgba(0,243,255,.15);
-  display: block;
-}
-
+/* Spinner */
+.spinner-cost-info { text-align:center; font-size:.8rem; color:var(--text-muted); padding:0 0 12px; }
+.wheel-wrapper { display:flex; flex-direction:column; align-items:center; gap:0; position:relative; }
+.wheel-pointer { font-size:1.5rem; color:var(--neon-cyan); text-shadow:0 0 10px var(--neon-cyan); z-index:2; margin-bottom:-4px; }
+#wheelCanvas { border-radius:50%; box-shadow:0 0 30px rgba(0,243,255,.15); }
 .spin-btn {
-  margin: 16px auto 0;
-  display: block;
-  padding: 16px 48px;
-  background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
-  border: none;
-  border-radius: 14px;
-  font-family: 'Orbitron', monospace;
-  font-size: .8rem;
-  letter-spacing: 2px;
-  color: #fff;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all .2s;
+  margin:16px auto 0; display:block; padding:16px 48px;
+  background:linear-gradient(135deg,var(--neon-pink),var(--neon-purple));
+  border:none; border-radius:14px; font-family:'Orbitron',monospace;
+  font-size:.8rem; letter-spacing:2px; color:#fff; font-weight:700; cursor:pointer; transition:all .2s;
 }
-
-.spin-btn:disabled { opacity: .5; cursor: not-allowed; }
-
-.spinner-odds {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  padding: 12px 0;
-  font-size: .7rem;
-  color: var(--text-muted);
-}
-
-/* ✅ FIX: Result box Wheel-এর একদম মাঝখানে */
-.spinner-result,
-#spinnerResult {
-  position: absolute;        /* wheel-wrapper এর ভেতরে position করবে */
-  top: 50%;                  /* উপর থেকে ৫০% */
-  left: 50%;                 /* বাম থেকে ৫০% */
-  transform: translate(-50%, -50%); /* নিজের size বাদ দিয়ে perfect center */
-  z-index: 10;               /* canvas-এর উপরে থাকবে */
-  width: 68%;
-  max-width: 210px;
-  padding: 18px 16px;
-  border-radius: 16px;
-  text-align: center;
-  background: rgba(10, 10, 15, 0.92);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(18px);
-  box-shadow:
-    0 0 30px rgba(0, 243, 255, 0.18),
-    inset 0 0 20px rgba(0, 243, 255, 0.04);
-}
-
-.spin-result-good {
-  font-family: 'Orbitron', monospace;
-  font-size: 1.1rem;
-  color: var(--success);
-}
-.spin-result-good span {
-  color: var(--neon-cyan);
-  font-size: 1.5rem;
-}
-.spin-result-bad {
-  font-family: 'Orbitron', monospace;
-  font-size: 1rem;
-  color: var(--text-muted);
-}
+.spin-btn:disabled { opacity:.5; cursor:not-allowed; }
+.spinner-odds { display:flex; justify-content:center; gap:20px; padding:12px 0; font-size:.7rem; color:var(--text-muted); }
+.spinner-result { margin:12px 16px; padding:16px; border-radius:14px; text-align:center; }
+.spin-result-good { font-family:'Orbitron',monospace; font-size:1.1rem; color:var(--success); }
+.spin-result-good span { color:var(--neon-cyan); font-size:1.5rem; }
+.spin-result-bad { font-family:'Orbitron',monospace; font-size:1rem; color:var(--text-muted); }
 
 /* Deposit Method Cards */
 .method-card {
@@ -1282,4 +1204,4 @@ body::after {
   border-radius:12px; color:#fff; font-family:'Orbitron',monospace;
   font-size:.7rem; letter-spacing:2px; text-decoration:none; font-weight:700;
 }
-.admin-contact-note { font-size:.75rem; color:var(--text-muted); line-height:1.5; margin-top:8px; }
+.admin-contact-note { font-size:.75rem; color:var(--text-muted); line-height:1.5; margin-top:8px; }"
