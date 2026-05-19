@@ -67,7 +67,7 @@ Protocol: Socks5"></textarea>
         <input type="number" class="form-input" id="adRewardInput" placeholder="e.g. 2" />
       </div>
       <div class="form-group">
-        <label class="form-label">Spin Cost (৳)</label>
+        <label class="form-label">Spin Cost (৳) — Total Balance থেকে কাটবে</label>
         <input type="number" class="form-input" id="spinCostInput" placeholder="e.g. 5" />
       </div>
       <div class="form-group">
@@ -180,6 +180,7 @@ Protocol: Socks5"></textarea>
     </div>
 
     <!-- User List -->
+    <!-- ✅ FIX: schema-তে একটাই `balance` field, তাই সেটাই দেখানো হচ্ছে -->
     <div class="admin-card" style="grid-column:1/-1;">
       <div class="admin-card-title" style="display:flex;align-items:center;justify-content:space-between;">
         <span>◈ USER LIST</span>
@@ -191,9 +192,7 @@ Protocol: Socks5"></textarea>
             <tr>
               <th>TELEGRAM ID</th>
               <th>USERNAME</th>
-              <th>AD BAL (৳)</th>
-              <th>DEP BAL (৳)</th>
-              <th>TOTAL BAL (৳)</th>
+              <th>BALANCE (৳)</th>
               <th>POINTS</th>
               <th>PROXIES</th>
               <th>ADS</th>
@@ -201,7 +200,7 @@ Protocol: Socks5"></textarea>
             </tr>
           </thead>
           <tbody id="userTableBody">
-            <tr><td colspan="9" class="text-muted" style="text-align:center;padding:20px;">Loading...</td></tr>
+            <tr><td colspan="7" class="text-muted" style="text-align:center;padding:20px;">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -224,7 +223,8 @@ Protocol: Socks5"></textarea>
     </div>
     <div style="display:flex;gap:10px;margin-top:4px;">
       <button class="admin-btn pink" style="flex:1;padding:12px;" onclick="confirmReject()">CONFIRM REJECT</button>
-      <button class="admin-btn cyan" style="flex:1;padding:12px;background:rgba(255,255,255,.06);color:var(--text-muted);"
+      <button class="admin-btn cyan"
+        style="flex:1;padding:12px;background:rgba(255,255,255,.06);color:var(--text-muted);"
         onclick="closeRejectModal()">CANCEL</button>
     </div>
   </div>
@@ -285,37 +285,32 @@ async function loadStats() {
 
 /* ══════════════════════════════════════════
    USERS
-   — এখন adBalance, depositBalance, totalBalance আলাদা দেখাবে
+   ✅ FIX: schema-তে একটাই `balance` field
 ══════════════════════════════════════════ */
 async function loadUsers() {
   const tbody = document.getElementById('userTableBody');
-  tbody.innerHTML = '<tr><td colspan="9" class="text-muted" style="text-align:center;padding:20px;">Loading...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" class="text-muted" style="text-align:center;padding:20px;">Loading...</td></tr>';
   try {
     const res  = await fetch('/api/db?action=users', { headers });
     const data = await res.json();
     if (!data.users || data.users.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="9" class="text-muted" style="text-align:center;padding:20px;">No users found</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="text-muted" style="text-align:center;padding:20px;">No users found</td></tr>';
       return;
     }
-    tbody.innerHTML = data.users.map(u => {
-      const adBal  = Number(u.adBalance      || 0);
-      const depBal = Number(u.depositBalance || 0);
-      const total  = adBal + depBal;
-      return `
-        <tr>
-          <td>${esc(u.telegramId)}</td>
-          <td>${esc(u.username || '—')}</td>
-          <td style="color:var(--neon-cyan);font-family:'Orbitron',monospace;">৳${adBal.toFixed(2)}</td>
-          <td style="color:var(--success);font-family:'Orbitron',monospace;">৳${depBal.toFixed(2)}</td>
-          <td style="color:#fff;font-weight:700;font-family:'Orbitron',monospace;">৳${total.toFixed(2)}</td>
-          <td style="color:var(--neon-pink);">${u.points || 0}</td>
-          <td>${u.proxiesBought || 0}</td>
-          <td>${u.adsWatched   || 0}</td>
-          <td style="color:var(--success);">৳${Number(u.totalEarned||0).toFixed(2)}</td>
-        </tr>`;
-    }).join('');
+    tbody.innerHTML = data.users.map(u => `
+      <tr>
+        <td>${esc(u.telegramId)}</td>
+        <td>${esc(u.username || '—')}</td>
+        <td style="color:var(--neon-cyan);font-family:'Orbitron',monospace;font-weight:700;">
+          ৳${Number(u.balance || 0).toFixed(2)}
+        </td>
+        <td style="color:var(--neon-pink);">${u.points || 0}</td>
+        <td>${u.proxiesBought || 0}</td>
+        <td>${u.adsWatched   || 0}</td>
+        <td style="color:var(--success);">৳${Number(u.totalEarned || 0).toFixed(2)}</td>
+      </tr>`).join('');
   } catch(e) {
-    tbody.innerHTML = '<tr><td colspan="9" class="text-muted" style="text-align:center;padding:20px;">Error loading users</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-muted" style="text-align:center;padding:20px;">Error loading users</td></tr>';
   }
 }
 
@@ -359,7 +354,7 @@ async function addProxy() {
     });
     const data = await res.json();
     if (res.ok) {
-      msg.textContent = '✓ Proxy added successfully'; msg.style.color = 'var(--success)';
+      msg.textContent = '✓ Proxy added'; msg.style.color = 'var(--success)';
       document.getElementById('proxyDetailsInput').value = '';
       loadProxies(); loadStats();
     } else { msg.textContent = '✗ ' + (data.error || 'Failed'); msg.style.color = 'var(--danger)'; }
@@ -378,7 +373,7 @@ async function deleteProxy(id) {
 }
 
 /* ══════════════════════════════════════════
-   SETTINGS
+   SETTINGS — spinCost field যোগ হয়েছে
 ══════════════════════════════════════════ */
 async function saveSettings() {
   const adReward    = document.getElementById('adRewardInput').value;
@@ -388,11 +383,7 @@ async function saveSettings() {
   try {
     const res  = await fetch('/api/db?action=saveSettings', {
       method:'POST', headers,
-      body: JSON.stringify({
-        adReward:    Number(adReward),
-        spinCost:    Number(spinCost),
-        bkashNumber
-      })
+      body: JSON.stringify({ adReward: Number(adReward), spinCost: Number(spinCost), bkashNumber })
     });
     const data = await res.json();
     if (res.ok) { msg.textContent = '✓ Settings saved'; msg.style.color = 'var(--success)'; }
@@ -406,7 +397,7 @@ async function loadSettingsForm() {
     const data = await res.json();
     if (data.settings) {
       document.getElementById('adRewardInput').value = data.settings.adReward    || '';
-      document.getElementById('spinCostInput').value = data.settings.spinCost    || '';
+      document.getElementById('spinCostInput').value = data.settings.spinCost    || '5';
       document.getElementById('bkashInput').value    = data.settings.bkashNumber || '';
     }
   } catch(e) { console.error(e); }
@@ -429,7 +420,8 @@ async function adjustBalance() {
     });
     const data = await res.json();
     if (res.ok) {
-      msg.textContent = `✓ Done. New balance: ৳${data.newBalance}`; msg.style.color = 'var(--success)';
+      msg.textContent = `✓ Done. New balance: ৳${Number(data.newBalance).toFixed(2)}`;
+      msg.style.color = 'var(--success)';
       loadUsers();
     } else { msg.textContent = '✗ ' + (data.error || 'Failed'); msg.style.color = 'var(--danger)'; }
   } catch(e) { msg.textContent = '✗ Connection error'; msg.style.color = 'var(--danger)'; }
@@ -509,7 +501,7 @@ async function togglePaymentMethod(method, number, label, enabled) {
 
 /* ══════════════════════════════════════════
    DEPOSIT REQUESTS
-   ✅ FIX 1: _id দিয়ে deduplicate করা হয়েছে
+   ✅ FIX 1: _id দিয়ে frontend deduplicate
 ══════════════════════════════════════════ */
 let allDeposits   = [];
 let depositFilter = 'pending';
@@ -521,11 +513,12 @@ async function loadDeposits() {
     const res  = await fetch('/api/db?action=allDeposits', { headers });
     const data = await res.json();
 
-    // ✅ FIX 1: Deduplicate by _id — same deposit 2 বার দেখাবে না
+    // ✅ FIX 1: _id দিয়ে deduplicate — same deposit 2 বার দেখাবে না
     const seen = new Set();
     allDeposits = (data.deposits || []).filter(d => {
-      if (!d._id || seen.has(String(d._id))) return false;
-      seen.add(String(d._id));
+      const key = String(d._id);
+      if (seen.has(key)) return false;
+      seen.add(key);
       return true;
     });
 
@@ -541,19 +534,17 @@ async function loadDeposits() {
 
 function filterDeposits(f, btn) {
   depositFilter = f;
-  // সব filter button reset
   document.querySelectorAll('[id^="filter"]').forEach(b => {
     b.style.background = 'linear-gradient(135deg,var(--neon-cyan),var(--neon-purple))';
     b.style.color      = '#000';
   });
-  // Active button dim করো
   if (btn) { btn.style.background = 'rgba(255,255,255,.06)'; btn.style.color = 'var(--text-muted)'; }
   renderDeposits();
 }
 
 function renderDeposits() {
   const list  = document.getElementById('depositRequestList');
-  let   items = depositFilter === 'all'
+  const items = depositFilter === 'all'
     ? allDeposits
     : allDeposits.filter(d => d.status === depositFilter);
 
