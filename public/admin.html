@@ -12,7 +12,7 @@
 
 <div class="admin-wrapper">
 
-  <!-- Header -->
+  <!-- ── Header ── -->
   <div class="admin-header">
     <div>
       <div class="admin-title">BLACKHEX ADMIN</div>
@@ -21,8 +21,8 @@
     <button class="admin-btn pink" onclick="logout()">LOGOUT</button>
   </div>
 
-  <!-- Stats Row -->
-  <div class="admin-grid" style="grid-template-columns:1fr 1fr 1fr;" id="statsRow">
+  <!-- ── Stats Row ── -->
+  <div class="admin-grid" style="grid-template-columns:1fr 1fr 1fr 1fr;">
     <div class="admin-card" style="text-align:center;">
       <div class="admin-stat-val" id="statUsers">--</div>
       <div class="admin-stat-label">Total Users</div>
@@ -35,9 +35,13 @@
       <div class="admin-stat-val" id="statSoldProxies">--</div>
       <div class="admin-stat-label">Sold Proxies</div>
     </div>
+    <div class="admin-card" style="text-align:center;">
+      <div class="admin-stat-val" id="statPendingDeposits" style="color:var(--warning);">--</div>
+      <div class="admin-stat-label">Pending Deposits</div>
+    </div>
   </div>
 
-  <!-- Main Grid -->
+  <!-- ── Main Grid ── -->
   <div class="admin-grid">
 
     <!-- Add Proxy -->
@@ -63,7 +67,7 @@ Protocol: Socks5"></textarea>
         <input type="number" class="form-input" id="adRewardInput" placeholder="e.g. 2" />
       </div>
       <div class="form-group">
-        <label class="form-label">bKash Number</label>
+        <label class="form-label">bKash Number (Legacy)</label>
         <input type="text" class="form-input" id="bkashInput" placeholder="e.g. 01XXXXXXXXX" />
       </div>
       <button class="admin-btn cyan" onclick="saveSettings()">SAVE SETTINGS</button>
@@ -83,6 +87,75 @@ Protocol: Socks5"></textarea>
       </div>
       <button class="admin-btn cyan" onclick="adjustBalance()">APPLY</button>
       <div id="adjustMsg" class="text-muted mt-10" style="font-size:0.75rem;"></div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         PAYMENT METHODS
+    ══════════════════════════════════════ -->
+    <div class="admin-card" style="grid-column:1/-1;">
+      <div class="admin-card-title">◈ PAYMENT METHODS</div>
+
+      <!-- Current Methods List -->
+      <div id="pmList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+
+      <!-- Add / Update Form -->
+      <div style="background:rgba(0,243,255,.04);border:1px solid var(--glass-border);border-radius:12px;padding:16px;">
+        <div class="form-label" style="margin-bottom:12px;">ADD / UPDATE METHOD</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Method</label>
+            <select class="form-input" id="pmMethod">
+              <option value="bkash">bKash</option>
+              <option value="nagad">Nagad</option>
+              <option value="rocket">Rocket</option>
+              <option value="binance">Binance</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Display Label</label>
+            <input type="text" class="form-input" id="pmLabel" placeholder="e.g. bKash Personal" />
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:10px;">
+          <label class="form-label">Number / Wallet Address</label>
+          <input type="text" class="form-input" id="pmNumber" placeholder="e.g. 01XXXXXXXXX" />
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;margin-top:10px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.8rem;color:var(--text-muted);">
+            <input type="checkbox" id="pmEnabled" checked style="accent-color:var(--neon-cyan);width:16px;height:16px;" />
+            Enabled (visible to users)
+          </label>
+          <button class="admin-btn cyan" onclick="savePaymentMethod()">SAVE METHOD</button>
+        </div>
+        <div id="pmMsg" class="text-muted mt-10" style="font-size:.75rem;"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         DEPOSIT REQUESTS
+    ══════════════════════════════════════ -->
+    <div class="admin-card" style="grid-column:1/-1;">
+      <div class="admin-card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <span>◈ DEPOSIT REQUESTS <span id="pendingBadge" style="color:var(--warning);font-size:.8rem;"></span></span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="admin-btn cyan" id="filterPendingBtn"
+            style="padding:6px 14px;font-size:.55rem;background:linear-gradient(135deg,var(--warning),#ff6600);color:#000;"
+            onclick="filterDeposits('pending',this)">⏳ PENDING</button>
+          <button class="admin-btn cyan" id="filterApprovedBtn"
+            style="padding:6px 14px;font-size:.55rem;"
+            onclick="filterDeposits('approved',this)">✅ APPROVED</button>
+          <button class="admin-btn cyan" id="filterRejectedBtn"
+            style="padding:6px 14px;font-size:.55rem;"
+            onclick="filterDeposits('rejected',this)">❌ REJECTED</button>
+          <button class="admin-btn cyan" id="filterAllBtn"
+            style="padding:6px 14px;font-size:.55rem;"
+            onclick="filterDeposits('all',this)">ALL</button>
+          <button class="admin-btn cyan"
+            style="padding:6px 14px;font-size:.55rem;"
+            onclick="loadDeposits()">🔄 REFRESH</button>
+        </div>
+      </div>
+      <div id="depositRequestList" style="display:flex;flex-direction:column;gap:10px;margin-top:12px;"></div>
     </div>
 
     <!-- Proxy List -->
@@ -121,21 +194,43 @@ Protocol: Socks5"></textarea>
               <th>TELEGRAM ID</th>
               <th>USERNAME</th>
               <th>BALANCE (৳)</th>
-              <th>PROXIES BOUGHT</th>
-              <th>ADS WATCHED</th>
+              <th>POINTS</th>
+              <th>PROXIES</th>
+              <th>ADS</th>
+              <th>TOTAL EARNED</th>
             </tr>
           </thead>
           <tbody id="userTableBody">
-            <tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px;">Loading...</td></tr>
+            <tr><td colspan="7" class="text-muted" style="text-align:center;padding:20px;">Loading...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
+  </div><!-- /admin-grid -->
+</div><!-- /admin-wrapper -->
+
+<!-- ════ MODAL: REJECT NOTE ════ -->
+<div class="modal-overlay" id="rejectModal" style="align-items:center;">
+  <div class="modal-box" style="border-radius:20px;max-width:420px;margin:20px;">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:var(--danger);">❌ REJECT DEPOSIT</div>
+    <input type="hidden" id="rejectDepositId" />
+    <div class="form-group">
+      <label class="form-label">Reason / Note for User</label>
+      <textarea class="form-textarea" id="rejectNoteInput" placeholder="e.g. Invalid Transaction ID, Amount mismatch, Fake screenshot..." style="min-height:80px;"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="admin-btn pink" style="flex:1;padding:12px;" onclick="confirmReject()">CONFIRM REJECT</button>
+      <button class="admin-btn cyan" style="flex:1;padding:12px;background:rgba(255,255,255,.06);color:var(--text-muted);" onclick="closeRejectModal()">CANCEL</button>
+    </div>
   </div>
 </div>
 
 <script>
+  /* ══════════════════════════════════════════
+     AUTH
+  ══════════════════════════════════════════ */
   const TOKEN = localStorage.getItem('bh_admin_token');
   if (!TOKEN) window.location.href = 'login.html';
 
@@ -144,11 +239,15 @@ Protocol: Socks5"></textarea>
     'Authorization': `Bearer ${TOKEN}`
   };
 
+  /* ══════════════════════════════════════════
+     UTILITIES
+  ══════════════════════════════════════════ */
   function showToast(msg, type = '') {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.className = 'toast show ' + type;
-    setTimeout(() => { t.className = 'toast'; }, 3500);
+    clearTimeout(t._t);
+    t._t = setTimeout(() => { t.className = 'toast'; }, 3500);
   }
 
   function logout() {
@@ -156,48 +255,67 @@ Protocol: Socks5"></textarea>
     window.location.href = 'login.html';
   }
 
-  /* ── Load Stats ── */
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function fmtDate(ds) {
+    if (!ds) return '—';
+    const d = new Date(ds);
+    return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
+         + ' ' + d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+  }
+
+  /* ══════════════════════════════════════════
+     STATS
+  ══════════════════════════════════════════ */
   async function loadStats() {
     try {
-      const res = await fetch('/api/db?action=stats', { headers });
+      const res  = await fetch('/api/db?action=stats', { headers });
       const data = await res.json();
-      document.getElementById('statUsers').textContent = data.totalUsers ?? '--';
+      document.getElementById('statUsers').textContent            = data.totalUsers       ?? '--';
       document.getElementById('statAvailableProxies').textContent = data.availableProxies ?? '--';
-      document.getElementById('statSoldProxies').textContent = data.soldProxies ?? '--';
+      document.getElementById('statSoldProxies').textContent      = data.soldProxies      ?? '--';
+      document.getElementById('statPendingDeposits').textContent  = data.pendingDeposits  ?? '--';
     } catch(e) { console.error(e); }
   }
 
-  /* ── Load Users ── */
+  /* ══════════════════════════════════════════
+     USERS
+  ══════════════════════════════════════════ */
   async function loadUsers() {
     const tbody = document.getElementById('userTableBody');
-    tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px;">Loading...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-muted" style="text-align:center;padding:20px;">Loading...</td></tr>';
     try {
-      const res = await fetch('/api/db?action=users', { headers });
+      const res  = await fetch('/api/db?action=users', { headers });
       const data = await res.json();
       if (!data.users || data.users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px;">No users found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-muted" style="text-align:center;padding:20px;">No users found</td></tr>';
         return;
       }
       tbody.innerHTML = data.users.map(u => `
         <tr>
-          <td>${u.telegramId}</td>
-          <td>${u.username || '—'}</td>
-          <td style="color:var(--neon-cyan);font-family:'Orbitron',monospace;">৳${u.balance}</td>
+          <td>${esc(u.telegramId)}</td>
+          <td>${esc(u.username || '—')}</td>
+          <td style="color:var(--neon-cyan);font-family:'Orbitron',monospace;">৳${Number(u.balance||0).toFixed(2)}</td>
+          <td style="color:var(--neon-pink);">${u.points || 0}</td>
           <td>${u.proxiesBought || 0}</td>
           <td>${u.adsWatched || 0}</td>
-        </tr>
-      `).join('');
+          <td style="color:var(--success);">৳${Number(u.totalEarned||0).toFixed(2)}</td>
+        </tr>`).join('');
     } catch(e) {
-      tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px;">Error loading users</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="text-muted" style="text-align:center;padding:20px;">Error loading users</td></tr>';
     }
   }
 
-  /* ── Load Proxies ── */
+  /* ══════════════════════════════════════════
+     PROXIES
+  ══════════════════════════════════════════ */
   async function loadProxies() {
     const tbody = document.getElementById('proxyTableBody');
     tbody.innerHTML = '<tr><td colspan="4" class="text-muted" style="text-align:center;padding:20px;">Loading...</td></tr>';
     try {
-      const res = await fetch('/api/db?action=proxies', { headers });
+      const res  = await fetch('/api/db?action=proxies', { headers });
       const data = await res.json();
       if (!data.proxies || data.proxies.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" class="text-muted" style="text-align:center;padding:20px;">No proxies in database</td></tr>';
@@ -206,133 +324,352 @@ Protocol: Socks5"></textarea>
       tbody.innerHTML = data.proxies.map((p, i) => `
         <tr>
           <td>${i + 1}</td>
-          <td style="font-family:monospace;font-size:0.75rem;color:var(--text-muted);max-width:300px;word-break:break-all;">
-            ${p.proxyDetails.substring(0, 80)}${p.proxyDetails.length > 80 ? '...' : ''}
+          <td style="font-family:monospace;font-size:.75rem;color:var(--text-muted);max-width:300px;word-break:break-all;">
+            ${esc(p.proxyDetails.substring(0, 80))}${p.proxyDetails.length > 80 ? '…' : ''}
           </td>
           <td><span class="badge ${p.status}">${p.status}</span></td>
           <td>
-            <button class="admin-btn pink" style="padding:4px 10px;font-size:0.55rem;" onclick="deleteProxy('${p._id}')">DELETE</button>
+            <button class="admin-btn pink" style="padding:4px 10px;font-size:.55rem;"
+              onclick="deleteProxy('${p._id}')">DELETE</button>
           </td>
-        </tr>
-      `).join('');
+        </tr>`).join('');
     } catch(e) {
       tbody.innerHTML = '<tr><td colspan="4" class="text-muted" style="text-align:center;padding:20px;">Error loading proxies</td></tr>';
     }
   }
 
-  /* ── Add Proxy ── */
   async function addProxy() {
     const details = document.getElementById('proxyDetailsInput').value.trim();
-    const msg = document.getElementById('addProxyMsg');
+    const msg     = document.getElementById('addProxyMsg');
     if (!details) { msg.textContent = '⚠ Please enter proxy details'; msg.style.color = 'var(--danger)'; return; }
-
     try {
-      const res = await fetch('/api/db?action=addProxy', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ proxyDetails: details })
-      });
+      const res  = await fetch('/api/db?action=addProxy', { method:'POST', headers, body: JSON.stringify({ proxyDetails: details }) });
       const data = await res.json();
       if (res.ok) {
-        msg.textContent = '✓ Proxy added successfully';
-        msg.style.color = 'var(--success)';
+        msg.textContent = '✓ Proxy added successfully'; msg.style.color = 'var(--success)';
         document.getElementById('proxyDetailsInput').value = '';
         loadProxies(); loadStats();
-      } else {
-        msg.textContent = '✗ ' + (data.error || 'Failed');
-        msg.style.color = 'var(--danger)';
-      }
-    } catch(e) {
-      msg.textContent = '✗ Connection error'; msg.style.color = 'var(--danger)';
-    }
+      } else { msg.textContent = '✗ ' + (data.error || 'Failed'); msg.style.color = 'var(--danger)'; }
+    } catch(e) { msg.textContent = '✗ Connection error'; msg.style.color = 'var(--danger)'; }
   }
 
-  /* ── Delete Proxy ── */
   async function deleteProxy(id) {
     if (!confirm('Delete this proxy?')) return;
     try {
-      const res = await fetch('/api/db?action=deleteProxy', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ proxyId: id })
-      });
+      const res = await fetch('/api/db?action=deleteProxy', { method:'POST', headers, body: JSON.stringify({ proxyId: id }) });
       if (res.ok) { showToast('Proxy deleted', 'success'); loadProxies(); loadStats(); }
       else showToast('Failed to delete', 'error');
     } catch(e) { showToast('Error', 'error'); }
   }
 
-  /* ── Save Settings ── */
+  /* ══════════════════════════════════════════
+     SETTINGS
+  ══════════════════════════════════════════ */
   async function saveSettings() {
-    const adReward = document.getElementById('adRewardInput').value;
+    const adReward    = document.getElementById('adRewardInput').value;
     const bkashNumber = document.getElementById('bkashInput').value.trim();
-    const msg = document.getElementById('settingsMsg');
-
+    const msg         = document.getElementById('settingsMsg');
     try {
-      const res = await fetch('/api/db?action=saveSettings', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ adReward: Number(adReward), bkashNumber })
-      });
+      const res  = await fetch('/api/db?action=saveSettings', { method:'POST', headers, body: JSON.stringify({ adReward: Number(adReward), bkashNumber }) });
       const data = await res.json();
-      if (res.ok) {
-        msg.textContent = '✓ Settings saved';
-        msg.style.color = 'var(--success)';
-      } else {
-        msg.textContent = '✗ ' + (data.error || 'Failed');
-        msg.style.color = 'var(--danger)';
-      }
-    } catch(e) {
-      msg.textContent = '✗ Connection error'; msg.style.color = 'var(--danger)';
-    }
+      if (res.ok) { msg.textContent = '✓ Settings saved'; msg.style.color = 'var(--success)'; }
+      else { msg.textContent = '✗ ' + (data.error || 'Failed'); msg.style.color = 'var(--danger)'; }
+    } catch(e) { msg.textContent = '✗ Connection error'; msg.style.color = 'var(--danger)'; }
   }
 
-  /* ── Adjust Balance ── */
-  async function adjustBalance() {
-    const telegramId = document.getElementById('adjustTgId').value.trim();
-    const amount = Number(document.getElementById('adjustAmount').value);
-    const msg = document.getElementById('adjustMsg');
-
-    if (!telegramId || isNaN(amount)) {
-      msg.textContent = '⚠ Fill all fields'; msg.style.color = 'var(--danger)'; return;
-    }
-
+  async function loadSettingsForm() {
     try {
-      const res = await fetch('/api/db?action=adjustBalance', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ telegramId, amount })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        msg.textContent = `✓ Balance updated. New balance: ৳${data.newBalance}`;
-        msg.style.color = 'var(--success)';
-        loadUsers();
-      } else {
-        msg.textContent = '✗ ' + (data.error || 'Failed');
-        msg.style.color = 'var(--danger)';
-      }
-    } catch(e) {
-      msg.textContent = '✗ Connection error'; msg.style.color = 'var(--danger)';
-    }
-  }
-
-  /* ── Load Settings into form ── */
-  async function loadSettings() {
-    try {
-      const res = await fetch('/api/db?action=getSettings', { headers });
+      const res  = await fetch('/api/db?action=getSettings', { headers });
       const data = await res.json();
       if (data.settings) {
-        document.getElementById('adRewardInput').value = data.settings.adReward || '';
-        document.getElementById('bkashInput').value = data.settings.bkashNumber || '';
+        document.getElementById('adRewardInput').value = data.settings.adReward    || '';
+        document.getElementById('bkashInput').value    = data.settings.bkashNumber || '';
       }
     } catch(e) { console.error(e); }
   }
 
-  /* ── Init ── */
+  /* ══════════════════════════════════════════
+     ADJUST BALANCE
+  ══════════════════════════════════════════ */
+  async function adjustBalance() {
+    const telegramId = document.getElementById('adjustTgId').value.trim();
+    const amount     = Number(document.getElementById('adjustAmount').value);
+    const msg        = document.getElementById('adjustMsg');
+    if (!telegramId || isNaN(amount)) { msg.textContent = '⚠ Fill all fields'; msg.style.color = 'var(--danger)'; return; }
+    try {
+      const res  = await fetch('/api/db?action=adjustBalance', { method:'POST', headers, body: JSON.stringify({ telegramId, amount }) });
+      const data = await res.json();
+      if (res.ok) {
+        msg.textContent = `✓ Done. New balance: ৳${data.newBalance}`; msg.style.color = 'var(--success)';
+        loadUsers();
+      } else { msg.textContent = '✗ ' + (data.error || 'Failed'); msg.style.color = 'var(--danger)'; }
+    } catch(e) { msg.textContent = '✗ Connection error'; msg.style.color = 'var(--danger)'; }
+  }
+
+  /* ══════════════════════════════════════════
+     PAYMENT METHODS
+  ══════════════════════════════════════════ */
+  async function loadPaymentMethods() {
+    const list = document.getElementById('pmList');
+    list.innerHTML = '<div class="text-muted" style="font-size:.8rem;padding:4px;">Loading...</div>';
+    try {
+      const res  = await fetch('/api/db?action=getPaymentMethodsAdmin', { headers });
+      const data = await res.json();
+      const methods = data.methods || [];
+
+      if (methods.length === 0) {
+        list.innerHTML = '<div class="text-muted" style="font-size:.8rem;padding:4px;">No payment methods configured yet.</div>';
+        return;
+      }
+
+      const icons = { bkash:'💸', nagad:'🟠', rocket:'🚀', binance:'🟡' };
+      list.innerHTML = methods.map(m => `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;
+                    background:rgba(0,243,255,.04);border:1px solid var(--glass-border);border-radius:10px;">
+          <span style="font-size:1.3rem;">${icons[m.method.toLowerCase()] || '💳'}</span>
+          <div style="flex:1;">
+            <div style="font-size:.88rem;color:var(--text-primary);font-weight:600;">${esc(m.label || m.method)}</div>
+            <div style="font-size:.75rem;color:var(--neon-cyan);font-family:'Orbitron',monospace;letter-spacing:1px;margin-top:2px;">${esc(m.number)}</div>
+          </div>
+          <span class="badge ${m.enabled ? 'available' : 'sold'}">${m.enabled ? 'ON' : 'OFF'}</span>
+          <button class="admin-btn ${m.enabled ? 'pink' : 'cyan'}" style="padding:5px 12px;font-size:.55rem;"
+            onclick="togglePaymentMethod('${m.method}','${esc(m.number)}','${esc(m.label||m.method)}',${!m.enabled})">
+            ${m.enabled ? 'DISABLE' : 'ENABLE'}
+          </button>
+        </div>`).join('');
+    } catch(e) {
+      list.innerHTML = '<div style="color:var(--danger);font-size:.8rem;">Error loading methods</div>';
+    }
+  }
+
+  async function savePaymentMethod() {
+    const method  = document.getElementById('pmMethod').value;
+    const number  = document.getElementById('pmNumber').value.trim();
+    const label   = document.getElementById('pmLabel').value.trim() || method;
+    const enabled = document.getElementById('pmEnabled').checked;
+    const msg     = document.getElementById('pmMsg');
+
+    if (!number) { msg.textContent = '⚠ Enter number/address'; msg.style.color = 'var(--danger)'; return; }
+
+    try {
+      const res = await fetch('/api/db?action=savePaymentMethod', {
+        method:'POST', headers,
+        body: JSON.stringify({ method, number, label, enabled })
+      });
+      if (res.ok) {
+        msg.textContent = `✓ ${label} saved`; msg.style.color = 'var(--success)';
+        document.getElementById('pmNumber').value = '';
+        document.getElementById('pmLabel').value  = '';
+        loadPaymentMethods();
+      } else { msg.textContent = '✗ Failed'; msg.style.color = 'var(--danger)'; }
+    } catch(e) { msg.textContent = '✗ Error'; msg.style.color = 'var(--danger)'; }
+  }
+
+  async function togglePaymentMethod(method, number, label, enabled) {
+    try {
+      await fetch('/api/db?action=savePaymentMethod', {
+        method:'POST', headers,
+        body: JSON.stringify({ method, number, label, enabled })
+      });
+      loadPaymentMethods();
+      showToast(`${label} ${enabled ? 'enabled' : 'disabled'}`, 'success');
+    } catch(e) { showToast('Error', 'error'); }
+  }
+
+  /* ══════════════════════════════════════════
+     DEPOSIT REQUESTS
+  ══════════════════════════════════════════ */
+  let allDeposits    = [];
+  let depositFilter  = 'pending';
+
+  async function loadDeposits() {
+    const list = document.getElementById('depositRequestList');
+    list.innerHTML = '<div class="text-muted" style="font-size:.8rem;padding:12px;text-align:center;"><span class="loading-spinner"></span></div>';
+    try {
+      const res  = await fetch('/api/db?action=allDeposits', { headers });
+      const data = await res.json();
+      allDeposits = data.deposits || [];
+
+      const pending = allDeposits.filter(d => d.status === 'pending').length;
+      document.getElementById('pendingBadge').textContent = pending > 0 ? `(${pending} pending)` : '';
+      document.getElementById('statPendingDeposits').textContent = pending;
+
+      renderDeposits();
+    } catch(e) {
+      list.innerHTML = '<div style="color:var(--danger);font-size:.8rem;padding:12px;">Error loading deposits</div>';
+    }
+  }
+
+  function filterDeposits(f, btn) {
+    depositFilter = f;
+    document.querySelectorAll('[id^="filter"]').forEach(b => {
+      b.style.background = 'linear-gradient(135deg,var(--neon-cyan),var(--neon-purple))';
+      b.style.color      = '#000';
+    });
+    if (btn) { btn.style.background = 'rgba(255,255,255,.06)'; btn.style.color = 'var(--text-muted)'; }
+    renderDeposits();
+  }
+
+  function renderDeposits() {
+    const list  = document.getElementById('depositRequestList');
+    let   items = allDeposits;
+
+    if (depositFilter !== 'all') items = items.filter(d => d.status === depositFilter);
+
+    if (items.length === 0) {
+      list.innerHTML = `<div class="text-muted" style="font-size:.82rem;padding:16px;text-align:center;">
+        No ${depositFilter === 'all' ? '' : depositFilter} deposits found.</div>`;
+      return;
+    }
+
+    const statusColors = { pending:'var(--warning)', approved:'var(--success)', rejected:'var(--danger)' };
+    const statusIcons  = { pending:'⏳', approved:'✅', rejected:'❌' };
+    const methodIcons  = { bkash:'💸', nagad:'🟠', rocket:'🚀', binance:'🟡' };
+
+    list.innerHTML = items.map(d => {
+      const sc  = statusColors[d.status] || 'var(--text-muted)';
+      const si  = statusIcons[d.status]  || '❓';
+      const mi  = methodIcons[d.method?.toLowerCase()] || '💳';
+      const isPending = d.status === 'pending';
+
+      return `
+        <div style="padding:16px;background:rgba(0,0,0,.2);border:1px solid ${isPending ? 'rgba(255,170,0,.25)' : 'var(--glass-border)'};
+                    border-radius:14px;transition:border-color .2s;">
+
+          <!-- Top Row -->
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:40px;height:40px;border-radius:10px;background:rgba(0,243,255,.06);
+                          border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
+                ${mi}
+              </div>
+              <div>
+                <div style="font-size:.88rem;font-weight:600;color:var(--text-primary);">
+                  ${esc(d.username || 'Anonymous')}
+                </div>
+                <div style="font-size:.7rem;color:var(--text-muted);margin-top:2px;">
+                  TG: ${esc(d.telegramId)}
+                </div>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-family:'Orbitron',monospace;font-size:1.1rem;color:var(--neon-cyan);">৳${d.amount}</div>
+              <div style="font-size:.65rem;color:${sc};letter-spacing:1px;margin-top:3px;">${si} ${d.status.toUpperCase()}</div>
+            </div>
+          </div>
+
+          <!-- Details Row -->
+          <div style="margin-top:10px;padding:10px 12px;background:rgba(0,243,255,.03);
+                      border:1px solid rgba(0,243,255,.08);border-radius:10px;
+                      display:flex;flex-wrap:wrap;gap:10px 20px;">
+            <div>
+              <div style="font-size:.6rem;letter-spacing:2px;color:var(--text-muted);">METHOD</div>
+              <div style="font-size:.82rem;color:var(--text-primary);margin-top:2px;">${mi} ${esc(d.method)}</div>
+            </div>
+            <div>
+              <div style="font-size:.6rem;letter-spacing:2px;color:var(--text-muted);">AMOUNT</div>
+              <div style="font-size:.82rem;color:var(--success);margin-top:2px;font-family:'Orbitron',monospace;">৳${d.amount}</div>
+            </div>
+            <div style="flex:1;min-width:140px;">
+              <div style="font-size:.6rem;letter-spacing:2px;color:var(--text-muted);">TRANSACTION ID</div>
+              <div style="font-size:.8rem;color:var(--text-primary);font-family:monospace;margin-top:2px;word-break:break-all;">${esc(d.txId)}</div>
+            </div>
+            <div>
+              <div style="font-size:.6rem;letter-spacing:2px;color:var(--text-muted);">SUBMITTED</div>
+              <div style="font-size:.72rem;color:var(--text-muted);margin-top:2px;">${fmtDate(d.createdAt)}</div>
+            </div>
+          </div>
+
+          ${d.rejectNote ? `
+          <div style="margin-top:8px;padding:8px 12px;background:rgba(255,51,85,.07);
+                       border:1px solid rgba(255,51,85,.2);border-radius:8px;">
+            <span style="font-size:.65rem;letter-spacing:1.5px;color:var(--danger);">REJECT NOTE: </span>
+            <span style="font-size:.8rem;color:var(--danger);">${esc(d.rejectNote)}</span>
+          </div>` : ''}
+
+          ${isPending ? `
+          <!-- Action Row -->
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+            <button class="admin-btn cyan"
+              style="padding:10px 20px;background:linear-gradient(135deg,var(--success),var(--neon-cyan));color:#000;flex:1;min-width:100px;"
+              onclick="approveDeposit('${d._id}')">
+              ✓ APPROVE ৳${d.amount}
+            </button>
+            <button class="admin-btn pink"
+              style="padding:10px 20px;flex:1;min-width:100px;"
+              onclick="openRejectModal('${d._id}')">
+              ✗ REJECT
+            </button>
+          </div>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  async function approveDeposit(id) {
+    if (!confirm('Approve this deposit and credit balance to user?')) return;
+    try {
+      const res = await fetch('/api/db?action=approveDeposit', {
+        method:'POST', headers, body: JSON.stringify({ depositId: id })
+      });
+      if (res.ok) {
+        showToast('✓ Deposit approved & balance credited', 'success');
+        loadDeposits(); loadStats(); loadUsers();
+      } else {
+        const d = await res.json();
+        showToast('✗ ' + (d.error || 'Failed'), 'error');
+      }
+    } catch(e) { showToast('Connection error', 'error'); }
+  }
+
+  /* ── Reject Modal ── */
+  function openRejectModal(depositId) {
+    document.getElementById('rejectDepositId').value = depositId;
+    document.getElementById('rejectNoteInput').value = '';
+    document.getElementById('rejectModal').classList.add('active');
+  }
+
+  function closeRejectModal() {
+    document.getElementById('rejectModal').classList.remove('active');
+  }
+
+  async function confirmReject() {
+    const id   = document.getElementById('rejectDepositId').value;
+    const note = document.getElementById('rejectNoteInput').value.trim();
+    if (!note) { showToast('Please enter a reject reason', 'error'); return; }
+
+    try {
+      const res = await fetch('/api/db?action=rejectDeposit', {
+        method:'POST', headers,
+        body: JSON.stringify({ depositId: id, rejectNote: note })
+      });
+      if (res.ok) {
+        showToast('Deposit rejected. User will see the reason.', 'success');
+        closeRejectModal();
+        loadDeposits(); loadStats();
+      } else {
+        const d = await res.json();
+        showToast('✗ ' + (d.error || 'Failed'), 'error');
+      }
+    } catch(e) { showToast('Connection error', 'error'); }
+  }
+
+  // Close reject modal on backdrop tap
+  document.getElementById('rejectModal').addEventListener('click', function(e) {
+    if (e.target === this) closeRejectModal();
+  });
+
+  /* ══════════════════════════════════════════
+     INIT
+  ══════════════════════════════════════════ */
   loadStats();
   loadUsers();
   loadProxies();
-  loadSettings();
+  loadSettingsForm();
+  loadPaymentMethods();
+  loadDeposits();
+
+  // Auto-refresh deposits every 60s
+  setInterval(loadDeposits, 60000);
 </script>
 </body>
 </html>
